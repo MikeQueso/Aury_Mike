@@ -316,6 +316,22 @@ body {
   margin: 0 auto 40px;
 }
 
+.hero-counter-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.hero-side-gif {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 16px;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+
 .hero-counter {
   display: flex;
   justify-content: center;
@@ -570,6 +586,7 @@ body {
   .login-card { padding: 40px 28px; }
   .photo-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .hero-counter { gap: 24px; }
+  .hero-side-gif { width: 80px; height: 80px; border-radius: 10px; }
 }
 
 /* =========================================
