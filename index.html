@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aury & Mike 🌸 — 2 años</title>
+  <!-- Cache controlado por .htaccess -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- LOGIN -->
+  <section id="login-page">
+    <div class="login-card">
+      <div class="login-couple-photo">
+        <img src="img/login_photo.jpg" alt="Aury & Mike">
+      </div>
+      <h1>Bienvenida</h1>
+      <p class="subtitle">Solo tú puedes entrar aquí</p>
+      <div class="login-step" id="step-1">
+        <label class="login-label" for="input-nombre">¿Cuál es tu nombre?</label>
+        <input type="text" id="input-nombre" class="login-input" placeholder="Escribe tu nombre..." autocomplete="off" autofocus>
+        <p class="login-error" id="err1"></p>
+        <button class="btn-primary" id="btn-step1">Continuar</button>
+      </div>
+      <div class="login-step hidden" id="step-2">
+        <label class="login-label" for="input-apodo">¿Cómo te dice de cariño tu novio?</label>
+        <input type="text" id="input-apodo" class="login-input" placeholder="Tu apodo especial..." autocomplete="off">
+        <p class="login-error" id="err2"></p>
+        <button class="btn-primary" id="btn-step2">Entrar 💫</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <div id="main-page">
+
+    <header class="site-header">
+      <div class="header-logo">Aury <span>&amp;</span> Mike</div>
+      <div class="header-center">
+        <button class="music-btn-header" id="music-play-btn" onclick="toggleMusic()">⏸</button>
+        <span class="music-title-header" id="music-song-title">Cargando...</span>
+      </div>
+      <div class="header-right">
+        <div id="admin-badge" style="display:none">
+          <span>✏️ Modo edición</span>
+        </div>
+        <div class="header-date">✦ 2 años juntos ✦</div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <img src="img/titulo_micky_aury.png" alt="Micky &amp; Aury" class="hero-title-img">
+        <div class="hero-counter">
+          <div class="counter-block"><span class="num" id="cnt-years">0</span><span class="lbl">años</span></div>
+          <div class="counter-block"><span class="num" id="cnt-months">0</span><span class="lbl">meses</span></div>
+          <div class="counter-block"><span class="num" id="cnt-days">0</span><span class="lbl">días</span></div>
+          <div class="counter-block"><span class="num" id="cnt-hours">00</span><span class="lbl">horas</span></div>
+          <div class="counter-block"><span class="num" id="cnt-mins">00</span><span class="lbl">minutos</span></div>
+          <div class="counter-block"><span class="num" id="cnt-secs">00</span><span class="lbl">segundos</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JUEGOS -->
+    <section class="section section-juegos">
+      <div class="section-header">
+        <h3>Juegos que hemos terminado juntos</h3>
+        <p>Cada partida, un recuerdo más</p>
+      </div>
+      <div class="albums-grid" id="juegos-grid"></div>
+      <div id="juegos-add-btn-wrap" style="display:none;text-align:center;margin-top:18px;gap:12px;flex-wrap:wrap;justify-content:center">
+        <button class="btn-add-album" onclick="openNewAlbumModal('juegos')">＋ Agregar juego</button>
+        <button class="btn-add-album" style="background:rgba(212,168,90,0.12);border-color:var(--gold);color:var(--gold)" onclick="resetAllJuegosPortadas()">↺ Restablecer portadas Steam</button>
+      </div>
+    </section>
+
+    <!-- ÁLBUMES -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Nuestros recuerdos</h3>
+        <p>Elige un álbum para ver los momentos especiales</p>
+      </div>
+      <div class="albums-grid" id="albums-grid"></div>
+      <div id="albums-add-btn-wrap" style="display:none;text-align:center;margin-top:18px">
+        <button class="btn-add-album" onclick="openNewAlbumModal('recuerdos')">＋ Agregar álbum</button>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      Hecho con todo mi amor para <strong>Aury</strong> 🌸 — porque cada segundo contigo vale infinito.
+    </footer>
+  </div>
+
+  <!-- OVERLAY ÁLBUM/JUEGO -->
+  <div class="fullscreen-overlay" id="album-overlay">
+    <div class="album-overlay-inner">
+      <div class="overlay-header">
+        <button class="overlay-back" onclick="closeAlbum()">← Volver</button>
+        <h3 id="album-overlay-title"></h3>
+        <div class="overlay-header-actions">
+          <button id="album-edit-name-btn" class="edit-btn" style="display:none" onclick="openEditAlbumName()" title="Editar nombre">✏️</button>
+          <button id="album-delete-btn" class="edit-btn edit-btn-danger" style="display:none" onclick="deleteAlbum()" title="Eliminar álbum">🗑️</button>
+        </div>
+      </div>
+      <div class="album-photos-grid" id="album-photos-grid"></div>
+      <div id="add-foto-btn-wrap" style="display:none;text-align:center;padding:20px">
+        <button class="btn-add-album" onclick="openNewFotoModal()">＋ Agregar foto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FOTO -->
+  <div class="photo-modal-overlay" id="photo-overlay" onclick="if(event.target===this)closePhoto()">
+    <div class="photo-modal-box">
+      <button class="photo-modal-close" onclick="closePhoto()">✕</button>
+      <button class="photo-nav photo-nav-left"  onclick="photoNav(-1)">‹</button>
+      <button class="photo-nav photo-nav-right" onclick="photoNav(1)">›</button>
+      <div class="photo-modal-img-wrap">
+        <img id="photo-modal-img" src="" alt="">
+      </div>
+      <div class="photo-modal-body">
+        <div class="photo-modal-header-row">
+          <div>
+            <p class="modal-date" id="photo-modal-date"></p>
+            <h4 class="modal-title" id="photo-modal-title"></h4>
+          </div>
+          <button id="photo-edit-btn" class="edit-btn" onclick="startEdit()" style="display:none" title="Editar">✏️</button>
+        </div>
+        <p class="modal-desc" id="photo-modal-desc"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY EDICIÓN FOTO -->
+  <div class="edit-overlay" id="edit-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title">✏️ Editar foto</h4>
+
+      <!-- Preview + cambio de imagen -->
+      <div class="edit-img-preview-wrap">
+        <img id="edit-img-preview" src="" alt="preview" onerror="this.style.display='none'">
+        <span id="edit-img-preview-placeholder">Sin imagen</span>
+      </div>
+      <label class="edit-label" style="margin-top:12px">🖼️ Cambiar imagen <span style="opacity:.55;font-size:11px">(URL o ruta img/...)</span></label>
+      <div class="edit-img-row">
+        <input type="text" id="edit-src-input" class="edit-input" placeholder="https://... o img/foto1.jpg">
+        <button class="btn-preview" onclick="previewEditImg()" title="Vista previa">👁</button>
+      </div>
+
+      <label class="edit-label" style="margin-top:14px">Título</label>
+      <input type="text" id="edit-titulo-input" class="edit-input" placeholder="Título de la foto">
+      <label class="edit-label" style="margin-top:14px">Fecha</label>
+      <input type="text" id="edit-fecha-input" class="edit-input" placeholder="Ej: Junio 2024">
+      <label class="edit-label" style="margin-top:14px">Descripción</label>
+      <textarea id="edit-desc-input" class="edit-textarea" placeholder="Escribe aquí..."></textarea>
+      <!-- Campo URL de portada para juegos base -->
+      <div id="edit-juego-portada-row" style="display:none">
+        <label class="edit-label" style="margin-top:4px;color:var(--gold)">🎮 Portada del juego</label>
+        <img id="edit-juego-portada-preview" src="" alt="preview portada"
+             style="display:none;width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;border:1px solid var(--border)">
+        <input type="text" id="edit-juego-portada-input" class="edit-input" placeholder="https://...imagen.jpg">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-save" style="flex:1" onclick="saveJuegoPortada()">Guardar URL ✓</button>
+          <button class="btn-cancel" style="font-size:0.8rem" onclick="resetJuegoPortada()" title="Volver a la imagen de Steam">↺ Steam</button>
+        </div>
+      </div>
+
+      <div class="edit-actions">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-cancel" onclick="closeEditOverlay()">Cancelar</button>
+          <button id="edit-delete-foto-btn" class="btn-delete" style="display:none" onclick="deleteFoto()">🗑️ Eliminar</button>
+        </div>
+        <button class="btn-save" onclick="saveEdit()">Guardar ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVO/EDITAR ÁLBUM -->
+  <div class="edit-overlay" id="album-modal-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title" id="album-modal-title">＋ Nuevo álbum</h4>
+      <label class="edit-label" style="margin-top:14px">Nombre del álbum</label>
+      <input type="text" id="album-modal-nombre" class="edit-input" placeholder="Ej: Nuestros viajes">
+      <div id="album-modal-portada-row">
+        <label class="edit-label" style="margin-top:14px">URL de portada <span style="opacity:.6;font-size:12px">(ruta en img/ o URL)</span></label>
+        <input type="text" id="album-modal-portada" class="edit-input" placeholder="img/foto1.jpg">
+      </div>
+      <input type="hidden" id="album-modal-id" value="">
+      <input type="hidden" id="album-modal-seccion" value="recuerdos">
+      <div class="edit-actions">
+        <button class="btn-cancel" onclick="closeAlbumModal()">Cancelar</button>
+        <button class="btn-save"   onclick="saveAlbumModal()">Guardar ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVA FOTO -->
+  <div class="edit-overlay" id="foto-modal-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title">＋ Nueva foto</h4>
+      <label class="edit-label">URL / ruta de la imagen</label>
+      <input type="text" id="foto-modal-src" class="edit-input" placeholder="img/foto1.jpg">
+      <label class="edit-label" style="margin-top:14px">Título</label>
+      <input type="text" id="foto-modal-titulo" class="edit-input" placeholder="Título">
+      <label class="edit-label" style="margin-top:14px">Fecha</label>
+      <input type="text" id="foto-modal-fecha" class="edit-input" placeholder="Ej: Junio 2024">
+      <label class="edit-label" style="margin-top:14px">Descripción</label>
+      <textarea id="foto-modal-desc" class="edit-textarea" placeholder="Descripción..."></textarea>
+      <div class="edit-actions">
+        <button class="btn-cancel" onclick="closeFotoModal()">Cancelar</button>
+        <button class="btn-save"   onclick="saveFotoModal()">Agregar ✓</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="js/app.js"></script>
+</body>
+</html>

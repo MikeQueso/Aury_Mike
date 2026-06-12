@@ -1,0 +1,60 @@
+# ============================================================
+#  AURORA INFINITY — .htaccess para InfinityFree
+#  Evita suspensiones, errores de conexión y caídas del dominio
+# ============================================================
+
+# --- Evitar errores 403 por DirectoryIndex ---
+Options -Indexes
+DirectoryIndex index.html index.php
+
+# --- Charset correcto para evitar caracteres rotos ---
+AddDefaultCharset UTF-8
+
+# --- MIME types para videos y audio (InfinityFree los bloquea sin esto) ---
+AddType video/mp4         .mp4
+AddType video/webm        .webm
+AddType audio/mpeg        .mp3
+AddType application/json  .json
+AddType image/webp        .webp
+
+# --- Cache del navegador: evita que el servidor reciba cada recurso en cada visita ---
+# Imágenes y videos: cache de 30 días
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$">
+  Header set Cache-Control "public, max-age=2592000"
+</FilesMatch>
+# Audio: cache de 30 días  
+<FilesMatch "\.mp3$">
+  Header set Cache-Control "public, max-age=2592000"
+</FilesMatch>
+# CSS y JS: cache de 1 día
+<FilesMatch "\.(css|js)$">
+  Header set Cache-Control "public, max-age=86400"
+</FilesMatch>
+# JSON de fotos: cache corta (10 minutos) para detectar cambios rápido
+<FilesMatch "fotos\.json$">
+  Header set Cache-Control "public, max-age=600"
+</FilesMatch>
+
+# --- Compresión (reduce ancho de banda = menos suspensiones) ---
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
+</IfModule>
+
+# --- Prevenir hotlinking de tus propias imágenes desde otros sitios ---
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_REFERER} !^$
+  RewriteCond %{HTTP_REFERER} !^https?://(www\.)?auryjsmike\.gamer\.gd [NC]
+  RewriteRule \.(mp4|mp3|jpg|jpeg|png)$ - [F,L]
+</IfModule>
+
+# --- Página de error personalizada (evita "connection error" en blanco) ---
+ErrorDocument 404 /index.html
+ErrorDocument 403 /index.html
+ErrorDocument 500 /index.html
+
+# --- Seguridad básica: ocultar archivos sensibles ---
+<FilesMatch "\.(py|log|sql|bak|zip|env)$">
+  Order deny,allow
+  Deny from all
+</FilesMatch>
