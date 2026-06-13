@@ -27,7 +27,7 @@ const BASE_ALBUMS = [
   },
   {
     id:"album2", seccion:"recuerdos", nombre:"Acuario Michin",
-    portada:"img/acuario/_portada.jpg",
+    portada:"https://yt3.googleusercontent.com/n9h4AGm4YdogtQ-73U2o_CZAoB6tPnKb6eg9qyysos4coWzNTyuBT1dhI8mrXWy3Gez5GvJz=s900-c-k-c0x00ffffff-no-rj",
     fotos:[] // se llenan desde img/acuario/fotos.json al abrir el álbum
   },
   {
@@ -338,6 +338,13 @@ function initLogin() {
         // (evita solicitudes automáticas que InfinityFree detecta como abuso)
         renderAlbums("juegos");
         renderAlbums("recuerdos");
+        // Pre-cargar fotos.json de los álbumes con carpeta para mostrar el contador correcto desde el inicio
+        (async () => {
+          for (const id of Object.keys(ALBUM_FOLDERS)) {
+            await loadAlbumFotosFromFolder(id);
+          }
+          renderAlbums("recuerdos");
+        })();
         showMusicPrompt(); autoplayWhenReady();
         if (isAdmin) {
           document.getElementById("admin-badge").style.display="inline-flex";
@@ -399,7 +406,7 @@ function renderAlbums(seccion) {
         <div class="album-cover-overlay">
           <span class="album-open-hint">${seccion==="juegos"?"Ver fotos →":"Abrir álbum →"}</span>
         </div>
-        <div class="album-photo-count">${nFotos} fotos</div>
+        <div class="album-photo-count">${nFotos} elemento${nFotos !== 1 ? 's' : ''}</div>
       </div>
       <div class="album-info"><h4 class="album-name">${icono} ${nombre}</h4></div>`;
     card.addEventListener("click", () => openAlbum(album.id));
