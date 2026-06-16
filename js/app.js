@@ -1076,15 +1076,26 @@ function renderMapaLeyenda() {
 }
 
 // ============================================================
-// CORAZONES Y COMENTARIOS — guardados como GitHub Issues
-// (así se ven en todos los dispositivos, sin servidor propio)
+// CORAZONES, COMENTARIOS Y VISITAS — guardados en Supabase
+// (así se ven en todos los dispositivos, en tiempo real)
 // ============================================================
-const GH_CONFIG = {
-  owner: "MikeQueso",
-  repo:  "Aury_Mike",
-  // Token con permisos limitados SOLO a Issues (no puede tocar código ni borrar el repo)
-  token: "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",
+const SUPABASE_CONFIG = {
+  url: "https://igeaunvbwunjkapzkmdb.supabase.co",
+  // Clave pública (publishable) — segura para usar en el navegador
+  key: "sb_publishable_SpjNeGcOLwExgWVjOLoCQw_xwBzObOP",
 };
+
+function sbHeaders(extra) {
+  return Object.assign({
+    "apikey": SUPABASE_CONFIG.key,
+    "Authorization": `Bearer ${SUPABASE_CONFIG.key}`,
+    "Content-Type": "application/json",
+  }, extra || {});
+}
+
+function sbUrl(path) {
+  return `${SUPABASE_CONFIG.url}/rest/v1/${path}`;
+}
 
 const reaccionesCache = {};
 
@@ -1103,60 +1114,20 @@ function getCurrentVisitorName() {
   return visitorName || (CONFIG.APODO || "Aury");
 }
 
-async function ghFetchIssueForFoto(fotoKey) {
-  const label = "foto:" + fotoKey;
-  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues?labels=${encodeURIComponent(label)}&state=all&per_page=1`;
-  const res = await fetch(url, {
-    headers: { "Authorization": `Bearer ${GH_CONFIG.token}`, "Accept": "application/vnd.github+json" }
-  });
-  if (!res.ok) return null;
-  const arr = await res.json();
-  return arr && arr.length ? arr[0] : null;
-}
-
-async function ghCreateIssueForFoto(fotoKey) {
-  const label = "foto:" + fotoKey;
-  // Asegurar que la etiqueta exista (GitHub la crea sola al usarla en el issue si no existe)
-  const res = await fetch(`https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${GH_CONFIG.token}`,
-      "Accept": "application/vnd.github+json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      title: "💬 Reacciones — " + fotoKey,
-      body: JSON.stringify({ corazones: [], comentarios: [] }),
-      labels: [label, "reacciones-foto"]
-    })
+async function sbFetchReacciones(fotoKey) {
+  const res = await fetch(sbUrl(`reacciones?foto_key=eq.${encodeURIComponent(fotoKey)}&select=nombre`), {
+    headers: sbHeaders()
   });
   if (!res.ok) return null;
   return await res.json();
 }
 
-function parseIssueBody(issue) {
-  try {
-    const data = JSON.parse(issue.body);
-    return {
-      corazones:   Array.isArray(data.corazones)   ? data.corazones   : [],
-      comentarios: Array.isArray(data.comentarios) ? data.comentarios : []
-    };
-  } catch(e) {
-    return { corazones: [], comentarios: [] };
-  }
-}
-
-async function ghUpdateIssue(issueNumber, data) {
-  const res = await fetch(`https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues/${issueNumber}`, {
-    method: "PATCH",
-    headers: {
-      "Authorization": `Bearer ${GH_CONFIG.token}`,
-      "Accept": "application/vnd.github+json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ body: JSON.stringify(data) })
+async function sbFetchComentarios(fotoKey) {
+  const res = await fetch(sbUrl(`comentarios?foto_key=eq.${encodeURIComponent(fotoKey)}&select=nombre,texto,created_at&order=created_at.asc`), {
+    headers: sbHeaders()
   });
-  return res.ok;
+  if (!res.ok) return null;
+  return await res.json();
 }
 
 async function loadReacciones(albumId, fi) {
@@ -1169,31 +1140,32 @@ async function loadReacciones(albumId, fi) {
   corazonBtn.disabled = true;
   lista.innerHTML = '<p style="opacity:.5;font-size:13px">Cargando...</p>';
 
-  let issue = reaccionesCache[fotoKey]?.issue;
-  if (!issue) {
-    issue = await ghFetchIssueForFoto(fotoKey);
-    if (!issue) issue = await ghCreateIssueForFoto(fotoKey);
-  }
+  const [corazones, comentarios] = await Promise.all([
+    sbFetchReacciones(fotoKey),
+    sbFetchComentarios(fotoKey)
+  ]);
 
-  if (!issue) {
-    lista.innerHTML = '<p style="opacity:.6;font-size:13px">💤 Los corazones y comentarios están en mantenimiento temporalmente.</p>';
+  if (corazones === null || comentarios === null) {
+    lista.innerHTML = '<p style="opacity:.6;font-size:13px">💤 Los corazones y comentarios no se pudieron cargar. Intenta de nuevo más tarde.</p>';
     corazonIcon.textContent = "🤍";
     corazonCount.textContent = "—";
     corazonBtn.disabled = true;
     return;
   }
 
-  const data = parseIssueBody(issue);
-  reaccionesCache[fotoKey] = { issue, data };
+  reaccionesCache[fotoKey] = { corazones, comentarios };
 
   const yo = getCurrentVisitorName();
-  const yaDioCorazon = data.corazones.includes(yo);
+  const yaDioCorazon = corazones.some(c => c.nombre === yo);
   corazonIcon.textContent = yaDioCorazon ? "❤️" : "🤍";
-  corazonCount.textContent = data.corazones.length;
+  corazonCount.textContent = corazones.length;
   corazonBtn.classList.toggle("activo", yaDioCorazon);
+  corazonBtn.title = corazones.length
+    ? "❤️ " + corazones.map(c => c.nombre).join(", ")
+    : "";
   corazonBtn.disabled = false;
 
-  renderComentarios(data.comentarios);
+  renderComentarios(comentarios);
 }
 
 function renderComentarios(comentarios) {
@@ -1204,7 +1176,7 @@ function renderComentarios(comentarios) {
   }
   lista.innerHTML = comentarios.map(c => `
     <div class="comentario-item">
-      <span class="comentario-autor">${escapeHtml(c.autor)}</span>
+      <span class="comentario-autor">${escapeHtml(c.nombre)}</span>
       <span class="comentario-texto">${escapeHtml(c.texto)}</span>
     </div>
   `).join("");
@@ -1222,16 +1194,44 @@ async function toggleCorazon() {
   if (!cache) return;
 
   const yo = getCurrentVisitorName();
-  const idx = cache.data.corazones.indexOf(yo);
-  if (idx === -1) cache.data.corazones.push(yo);
-  else cache.data.corazones.splice(idx, 1);
+  const idx = cache.corazones.findIndex(c => c.nombre === yo);
+  const corazonBtn = document.getElementById("btn-corazon");
 
-  // Actualizar UI de inmediato (optimista)
-  document.getElementById("corazon-count").textContent = cache.data.corazones.length;
-  document.getElementById("corazon-icon").textContent = idx === -1 ? "❤️" : "🤍";
-  document.getElementById("btn-corazon").classList.toggle("activo", idx === -1);
+  if (idx === -1) {
+    // Agregar corazón (optimista)
+    cache.corazones.push({ nombre: yo });
+    document.getElementById("corazon-count").textContent = cache.corazones.length;
+    document.getElementById("corazon-icon").textContent = "❤️";
+    corazonBtn.classList.add("activo");
 
-  await ghUpdateIssue(cache.issue.number, cache.data);
+    const res = await fetch(sbUrl("reacciones"), {
+      method: "POST",
+      headers: sbHeaders({ "Prefer": "resolution=ignore-duplicates" }),
+      body: JSON.stringify({ foto_key: fotoKey, nombre: yo })
+    });
+    if (!res.ok) {
+      // revertir si falla
+      cache.corazones.pop();
+      document.getElementById("corazon-count").textContent = cache.corazones.length;
+      document.getElementById("corazon-icon").textContent = "🤍";
+      corazonBtn.classList.remove("activo");
+    }
+  } else {
+    // Quitar corazón (optimista)
+    cache.corazones.splice(idx, 1);
+    document.getElementById("corazon-count").textContent = cache.corazones.length;
+    document.getElementById("corazon-icon").textContent = "🤍";
+    corazonBtn.classList.remove("activo");
+
+    await fetch(sbUrl(`reacciones?foto_key=eq.${encodeURIComponent(fotoKey)}&nombre=eq.${encodeURIComponent(yo)}`), {
+      method: "DELETE",
+      headers: sbHeaders()
+    });
+  }
+
+  corazonBtn.title = cache.corazones.length
+    ? "❤️ " + cache.corazones.map(c => c.nombre).join(", ")
+    : "";
 }
 
 async function enviarComentario() {
@@ -1246,56 +1246,64 @@ async function enviarComentario() {
   const btn = document.getElementById("btn-enviar-comentario");
   btn.disabled = true;
 
-  const comentario = { autor: getCurrentVisitorName(), texto, fecha: new Date().toISOString() };
-  cache.data.comentarios.push(comentario);
-  renderComentarios(cache.data.comentarios);
-  input.value = "";
+  const nombre = getCurrentVisitorName();
+  const comentario = { foto_key: fotoKey, nombre, texto };
 
-  await ghUpdateIssue(cache.issue.number, cache.data);
+  const res = await fetch(sbUrl("comentarios"), {
+    method: "POST",
+    headers: sbHeaders({ "Prefer": "return=representation" }),
+    body: JSON.stringify(comentario)
+  });
+
+  if (res.ok) {
+    cache.comentarios.push({ nombre, texto, created_at: new Date().toISOString() });
+    renderComentarios(cache.comentarios);
+    input.value = "";
+  }
   btn.disabled = false;
 }
 
 // ============================================================
-// REGISTRO DE VISITAS
-// NOTA: por ahora se guarda solo en este dispositivo (localStorage).
-// Para verlo desde cualquier dispositivo se necesita una base de
-// datos compartida real (ej. Supabase) — pendiente de conectar.
+// REGISTRO DE VISITAS (compartido entre todos los dispositivos)
 // ============================================================
-function registrarVisita(nombre) {
+async function registrarVisita(nombre) {
   try {
-    const visitas = JSON.parse(localStorage.getItem("aurora_visitas") || "[]");
-    visitas.push({ nombre, fecha: new Date().toISOString() });
-    // Guardamos máximo las últimas 200 para no saturar
-    while (visitas.length > 200) visitas.shift();
-    localStorage.setItem("aurora_visitas", JSON.stringify(visitas));
+    await fetch(sbUrl("visitas"), {
+      method: "POST",
+      headers: sbHeaders(),
+      body: JSON.stringify({ nombre })
+    });
   } catch(e) {}
 }
 
-function abrirPanelVisitas() {
+async function abrirPanelVisitas() {
   const overlay = document.getElementById("visitas-overlay");
   const lista = document.getElementById("visitas-lista");
+  lista.innerHTML = '<p style="opacity:.5;font-size:13px">Cargando...</p>';
+  overlay.classList.add("open");
+
   let visitas = [];
-  try { visitas = JSON.parse(localStorage.getItem("aurora_visitas") || "[]"); } catch(e) {}
+  try {
+    const res = await fetch(sbUrl("visitas?select=nombre,created_at&order=created_at.desc&limit=200"), {
+      headers: sbHeaders()
+    });
+    if (res.ok) visitas = await res.json();
+  } catch(e) {}
 
   if (!visitas.length) {
-    lista.innerHTML = `<p style="opacity:.6;font-size:13px">
-      Aún no hay visitas registradas en este dispositivo.<br><br>
-      <em>Nota: este registro solo guarda las visitas hechas desde el navegador donde estás viendo esto ahora.
-      Para ver visitas de todos los dispositivos hace falta conectar una base de datos compartida.</em>
-    </p>`;
-  } else {
-    lista.innerHTML = visitas.slice().reverse().map(v => {
-      const d = new Date(v.fecha);
-      const fechaStr = d.toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
-      const horaStr  = d.toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" });
-      return `<div class="visita-item">
-        <span class="visita-nombre">${escapeHtml(v.nombre)}</span>
-        <span class="visita-fecha">${fechaStr}, ${horaStr}</span>
-      </div>`;
-    }).join("");
+    lista.innerHTML = '<p style="opacity:.6;font-size:13px">Aún no hay visitas registradas.</p>';
+    return;
   }
 
-  overlay.classList.add("open");
+  lista.innerHTML = visitas.map(v => {
+    const d = new Date(v.created_at);
+    const fechaStr = d.toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
+    const horaStr  = d.toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" });
+    return `<div class="visita-item">
+      <span class="visita-nombre">${escapeHtml(v.nombre)}</span>
+      <span class="visita-fecha">${fechaStr}, ${horaStr}</span>
+    </div>`;
+  }).join("");
 }
 
 function cerrarPanelVisitas() {
