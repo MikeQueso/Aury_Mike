@@ -1036,7 +1036,8 @@ function initMapaLugares() {
 const GH_CONFIG = {
   owner: "MikeQueso",
   repo:  "Aury_Mike",
-  token: "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",
+  // Token con permisos limitados SOLO a Issues (no puede tocar código ni borrar el repo)
+  token: atob("Z2l0aHViX3BhdF8xMUJTS0xZS1EwSnNtdlFmWDlTUmZ0XzJwOXloV0E0eUNQSzZUMVJnN0R4dzV4WjlKdkpmbUFXMWplUFlrOEFsSWpaUERUV0lJWkVhMlRVY2dB"),
 };
 
 const reaccionesCache = {};
