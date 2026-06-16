@@ -310,20 +310,42 @@ function initParticles() {
   let W, H, particles;
   function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
   function create() {
-    particles = Array.from({length:55}, () => ({
-      x:Math.random()*W, y:Math.random()*H, r:Math.random()*2.5+0.5,
+    particles = Array.from({length:45}, () => ({
+      x:Math.random()*W, y:Math.random()*H, s:Math.random()*0.6+0.5,
+      rot:Math.random()*Math.PI*2, drot:(Math.random()-0.5)*0.01,
       dx:(Math.random()-0.5)*0.3, dy:-Math.random()*0.4-0.1,
-      alpha:Math.random()*0.5+0.15, color:Math.random()>0.5?"232,132,154":"212,168,90"
+      alpha:Math.random()*0.45+0.15, color:Math.random()>0.5?"232,132,154":"212,168,90"
     }));
+  }
+  function drawPawPrint(p) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.scale(p.s, p.s);
+    ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+    // almohadilla central (forma ovalada)
+    ctx.beginPath();
+    ctx.ellipse(0, 3, 4.2, 3.4, 0, 0, Math.PI*2);
+    ctx.fill();
+    // 4 dedos alrededor
+    const toes = [
+      [-4.6, -4.2, 1.7], [-1.6, -6.2, 1.8],
+      [1.6, -6.2, 1.8],  [4.6, -4.2, 1.7]
+    ];
+    toes.forEach(([tx,ty,tr]) => {
+      ctx.beginPath();
+      ctx.arc(tx, ty, tr, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.restore();
   }
   function draw() {
     ctx.clearRect(0,0,W,H);
     particles.forEach(p => {
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${p.color},${p.alpha})`; ctx.fill();
-      p.x+=p.dx; p.y+=p.dy;
-      if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}
-      if(p.x<-10||p.x>W+10) p.dx*=-1;
+      drawPawPrint(p);
+      p.x+=p.dx; p.y+=p.dy; p.rot+=p.drot;
+      if(p.y<-15){p.y=H+15;p.x=Math.random()*W;}
+      if(p.x<-15||p.x>W+15) p.dx*=-1;
     });
     requestAnimationFrame(draw);
   }
@@ -444,6 +466,7 @@ function initLogin() {
     if (!visitorName) {
       try { visitorName = localStorage.getItem("aurora_visitor_name"); } catch(e){}
     }
+    registrarVisita(isAdmin ? "Miguel (admin)" : (visitorName || "Anónimo"));
     loginPage.style.cssText="transition:opacity .6s;opacity:0";
     setTimeout(()=>{
       loginPage.style.display="none";
@@ -467,14 +490,14 @@ function initLogin() {
         })();
         showMusicPrompt(); autoplayWhenReady();
         initMapaLugares();
-        initMapaLugares();
-        cargarReaccionesGlobal();
         if (isAdmin) {
           document.getElementById("admin-badge").style.display="inline-flex";
           document.getElementById("albums-add-btn-wrap").style.display="block";
           document.getElementById("juegos-add-btn-wrap").style.display="flex";
+          document.getElementById("btn-ver-visitas").style.display="flex";
         } else {
           document.getElementById("admin-badge").style.display="none";
+          document.getElementById("btn-ver-visitas").style.display="none";
         }
       });
     }, 600);
@@ -1001,8 +1024,8 @@ function toggleMusic() {
 // MAPA DE LUGARES VISITADOS
 // ============================================================
 const LUGARES = [
-  { nombre: "Castillo de Chapultepec", lat: 19.4205, lng: -99.1819, emoji: "🏰", desc: "Una tarde explorando el castillo y el bosque" },
-  { nombre: "Acuario Michin",          lat: 19.4060, lng: -99.1411, emoji: "🐠", desc: "Día rodeados de peces y criaturas marinas" },
+  { nombre: "Bosque de Chapultepec", lat: 19.41963325882592, lng: -99.18948799065775, color: "#e8849a", emoji: "🌳", desc: "Una tarde explorando el castillo y el bosque" },
+  { nombre: "Acuario Michin",        lat: 19.478205044738917, lng: -99.10010156182065, color: "#5aa9d4", emoji: "🐠", desc: "Día rodeados de peces y criaturas marinas" },
 ];
 
 function initMapaLugares() {
@@ -1011,33 +1034,45 @@ function initMapaLugares() {
   if (el._mapaInit) return;
   el._mapaInit = true;
 
-  const map = L.map(el, { scrollWheelZoom: false }).setView([19.413, -99.161], 12);
+  const map = L.map(el, { scrollWheelZoom: false }).setView([19.45, -99.14], 11);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     maxZoom: 19
   }).addTo(map);
 
-  const icon = L.divIcon({
-    className: "mapa-pin",
-    html: '<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))">📍</div>',
-    iconSize: [30, 30],
-    iconAnchor: [15, 28]
-  });
-
   const bounds = [];
   LUGARES.forEach(lugar => {
+    const icon = L.divIcon({
+      className: "mapa-pin",
+      html: `<div style="width:16px;height:16px;border-radius:50%;background:${lugar.color};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
     const marker = L.marker([lugar.lat, lugar.lng], { icon }).addTo(map);
     marker.bindPopup(
       `<div style="font-family:inherit;min-width:160px">
         <strong>${lugar.emoji} ${lugar.nombre}</strong>
-        <p style="margin:4px 0 0;font-size:13px;opacity:.85">${lugar.desc}</p>
+        <p style="margin:4px 0 0;font-size:13px;opacity:.85;color:#333">${lugar.desc}</p>
       </div>`
     );
     bounds.push([lugar.lat, lugar.lng]);
   });
 
-  if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
+  if (bounds.length > 1) map.fitBounds(bounds, { padding: [50, 50] });
+
+  renderMapaLeyenda();
+}
+
+function renderMapaLeyenda() {
+  const el = document.getElementById("mapa-leyenda");
+  if (!el) return;
+  el.innerHTML = LUGARES.map(l => `
+    <div class="leyenda-item">
+      <span class="leyenda-color" style="background:${l.color}"></span>
+      <span class="leyenda-nombre">${l.emoji} ${l.nombre}</span>
+    </div>
+  `).join("");
 }
 
 // ============================================================
@@ -1141,8 +1176,10 @@ async function loadReacciones(albumId, fi) {
   }
 
   if (!issue) {
-    lista.innerHTML = '<p style="opacity:.5;font-size:13px">No se pudieron cargar los comentarios.</p>';
-    corazonBtn.disabled = false;
+    lista.innerHTML = '<p style="opacity:.6;font-size:13px">💤 Los corazones y comentarios están en mantenimiento temporalmente.</p>';
+    corazonIcon.textContent = "🤍";
+    corazonCount.textContent = "—";
+    corazonBtn.disabled = true;
     return;
   }
 
@@ -1216,4 +1253,51 @@ async function enviarComentario() {
 
   await ghUpdateIssue(cache.issue.number, cache.data);
   btn.disabled = false;
+}
+
+// ============================================================
+// REGISTRO DE VISITAS
+// NOTA: por ahora se guarda solo en este dispositivo (localStorage).
+// Para verlo desde cualquier dispositivo se necesita una base de
+// datos compartida real (ej. Supabase) — pendiente de conectar.
+// ============================================================
+function registrarVisita(nombre) {
+  try {
+    const visitas = JSON.parse(localStorage.getItem("aurora_visitas") || "[]");
+    visitas.push({ nombre, fecha: new Date().toISOString() });
+    // Guardamos máximo las últimas 200 para no saturar
+    while (visitas.length > 200) visitas.shift();
+    localStorage.setItem("aurora_visitas", JSON.stringify(visitas));
+  } catch(e) {}
+}
+
+function abrirPanelVisitas() {
+  const overlay = document.getElementById("visitas-overlay");
+  const lista = document.getElementById("visitas-lista");
+  let visitas = [];
+  try { visitas = JSON.parse(localStorage.getItem("aurora_visitas") || "[]"); } catch(e) {}
+
+  if (!visitas.length) {
+    lista.innerHTML = `<p style="opacity:.6;font-size:13px">
+      Aún no hay visitas registradas en este dispositivo.<br><br>
+      <em>Nota: este registro solo guarda las visitas hechas desde el navegador donde estás viendo esto ahora.
+      Para ver visitas de todos los dispositivos hace falta conectar una base de datos compartida.</em>
+    </p>`;
+  } else {
+    lista.innerHTML = visitas.slice().reverse().map(v => {
+      const d = new Date(v.fecha);
+      const fechaStr = d.toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
+      const horaStr  = d.toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" });
+      return `<div class="visita-item">
+        <span class="visita-nombre">${escapeHtml(v.nombre)}</span>
+        <span class="visita-fecha">${fechaStr}, ${horaStr}</span>
+      </div>`;
+    }).join("");
+  }
+
+  overlay.classList.add("open");
+}
+
+function cerrarPanelVisitas() {
+  document.getElementById("visitas-overlay").classList.remove("open");
 }

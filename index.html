@@ -64,6 +64,7 @@
         <div id="admin-badge" style="display:none">
           <span>✏️ Modo edición</span>
         </div>
+        <button id="btn-ver-visitas" style="display:none" class="music-btn-header" title="Ver visitas registradas" onclick="abrirPanelVisitas()">👁</button>
         <div class="header-date">✦ 2 años juntos ✦</div>
       </div>
     </header>
@@ -116,7 +117,10 @@
         <h3>Lugares que hemos visitado</h3>
         <p>Cada punto en el mapa, un momento juntos</p>
       </div>
-      <div id="mapa-lugares" style="height:420px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
+      <div class="mapa-wrapper">
+        <div class="mapa-leyenda" id="mapa-leyenda"></div>
+        <div id="mapa-lugares" class="mapa-contenedor"></div>
+      </div>
     </section>
 
     <footer class="site-footer">
@@ -262,6 +266,16 @@
     </div>
   </div>
 
+  <!-- PANEL DE VISITAS (solo admin) -->
+  <div class="edit-overlay" id="visitas-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title">👁 Quién ha entrado al sitio</h4>
+      <div id="visitas-lista" class="visitas-lista"></div>
+      <div class="edit-actions">
+        <button class="btn-cancel" onclick="cerrarPanelVisitas()">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <script src="js/app.js"></script>
