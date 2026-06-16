@@ -18,6 +18,20 @@ const ALBUM_FOLDERS = {
   "album2": { carpeta: "img/acuario",     json: "img/acuario/fotos.json"     },
 };
 
+// Configuración de carpetas por juego
+const JUEGO_FOLDERS = {
+  "jg2":  { carpeta: "img/minecraft",          json: "img/minecraft/fotos.json"          },
+  "jg3":  { carpeta: "img/minecraft_dungeons", json: "img/minecraft_dungeons/fotos.json" },
+  "jg10": { carpeta: "img/castle_crashers",    json: "img/castle_crashers/fotos.json"    },
+  "jg12": { carpeta: "img/terraria",           json: "img/terraria/fotos.json"           },
+  "jg14": { carpeta: "img/roblox",             json: "img/roblox/fotos.json"             },
+  "jg15": { carpeta: "img/pvzbfn",             json: "img/pvzbfn/fotos.json"             },
+  "jg16": { carpeta: "img/repo",               json: "img/repo/fotos.json"               },
+  "jg17": { carpeta: "img/soul_prequel",       json: "img/soul_prequel/fotos.json"       },
+  "jg26": { carpeta: "img/brawl_stars",        json: "img/brawl_stars/fotos.json"        },
+  "jg27": { carpeta: "img/cod_mobile",         json: "img/cod_mobile/fotos.json"         },
+};
+
 // Álbumes base — sección recuerdos
 const BASE_ALBUMS = [
   {
@@ -46,7 +60,7 @@ const fotosCache = {};
 
 async function loadAlbumFotosFromFolder(albumId) {
   if (fotosCache[albumId]) return; // ya cargadas
-  const folder = ALBUM_FOLDERS[albumId];
+  const folder = ALBUM_FOLDERS[albumId] || JUEGO_FOLDERS[albumId];
   if (!folder) return;
   try {
     // Usar versión fija para aprovechar cache del servidor (evita solicitudes excesivas en InfinityFree)
@@ -55,7 +69,7 @@ async function loadAlbumFotosFromFolder(albumId) {
     if (cached) {
       try {
         const fotos = JSON.parse(cached);
-        const album = BASE_ALBUMS.find(a => a.id === albumId);
+        const album = BASE_ALBUMS.find(a => a.id === albumId) || BASE_JUEGOS.find(j => j.id === albumId);
         if (album) album.fotos = fotos;
         fotosCache[albumId] = true;
         return;
@@ -67,7 +81,7 @@ async function loadAlbumFotosFromFolder(albumId) {
     // Guardar en sessionStorage para evitar re-fetches en la misma sesión
     try { sessionStorage.setItem("aurora_fotos_" + albumId, JSON.stringify(fotos)); } catch(e) {}
     // Guardar en el álbum base correspondiente
-    const album = BASE_ALBUMS.find(a => a.id === albumId);
+    const album = BASE_ALBUMS.find(a => a.id === albumId) || BASE_JUEGOS.find(j => j.id === albumId);
     if (album) album.fotos = fotos;
     fotosCache[albumId] = true;
   } catch(e) {
@@ -355,7 +369,11 @@ function initLogin() {
           for (const id of Object.keys(ALBUM_FOLDERS)) {
             await loadAlbumFotosFromFolder(id);
           }
+          for (const id of Object.keys(JUEGO_FOLDERS)) {
+            await loadAlbumFotosFromFolder(id);
+          }
           renderAlbums("recuerdos");
+          renderAlbums("juegos");
         })();
         showMusicPrompt(); autoplayWhenReady();
         if (isAdmin) {
