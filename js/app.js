@@ -116,6 +116,8 @@ const BASE_JUEGOS = [
   { id:"jg23", seccion:"juegos", nombre:"Move or Die",            portada:"https://cdn.cloudflare.steamstatic.com/steam/apps/323850/header.jpg",                                                                                                                                                           fotos:[] },
   { id:"jg24", seccion:"juegos", nombre:"Peak",                   portada:"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3527290/header.jpg",                                                                                                                                        fotos:[] },
   { id:"jg25", seccion:"juegos", nombre:"Skullgirls",             portada:"https://cdn.cloudflare.steamstatic.com/steam/apps/245170/header.jpg",                                                                                                                                                           fotos:[] },
+  { id:"jg26", seccion:"juegos", nombre:"Brawl Stars", portada:"img/brawl_stars/foto_01.jpeg", fotos:[] },
+  { id:"jg27", seccion:"juegos", nombre:"COD Mobile",  portada:"img/cod_mobile/foto_01.jpeg",  fotos:[] },
 ];
 
 const BASE_JUEGOS_IDS = new Set(BASE_JUEGOS.map(j => j.id));
