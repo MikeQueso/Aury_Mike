@@ -364,6 +364,17 @@ function initLogin() {
       requestAnimationFrame(()=>{
         stepV1.style.transition="opacity .4s,transform .4s";
         stepV1.style.cssText="opacity:1;transform:translateX(0)";
+        // Si ya nos visitó antes en este dispositivo, recordamos su nombre
+        let nombrePrevio = null;
+        try { nombrePrevio = localStorage.getItem("aurora_visitor_name"); } catch(err){}
+        const bienvenida = document.getElementById("bienvenida-vuelta");
+        if (nombrePrevio) {
+          inputVNombre.value = nombrePrevio;
+          bienvenida.textContent = `¡Hola de nuevo, ${nombrePrevio}! 👋 Si no eres tú, borra el nombre y escribe el tuyo.`;
+          bienvenida.classList.remove("hidden");
+        } else {
+          bienvenida.classList.add("hidden");
+        }
         inputVNombre.focus();
       });
     }, 350);
