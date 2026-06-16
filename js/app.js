@@ -7,8 +7,19 @@ const CONFIG = {
   APODO:       "aury",
   ADMIN:       "miguel",
   ANIVERSARIO: "2024-06-10T00:00:00-06:00",
+  ANIVERSARIO_DIA:   10,
+  ANIVERSARIO_MES:   6,
+  ANIVERSARIO_ANIO:  2024,
   SONG_TITLE:  "Just the Way You Are 🎵",
   SONG_ARTIST: "♪ Milky — Para Aurora ♪",
+};
+
+// Configuración para guardar corazones/comentarios usando GitHub Issues como base de datos
+// Token de acceso limitado SOLO a Issues de este repositorio (no puede tocar código ni borrar nada)
+const GITHUB_CONFIG = {
+  OWNER: "MikeQueso",
+  REPO:  "Aury_Mike",
+  TOKEN: "PENDIENTE_TOKEN",
 };
 
 // Configuración de carpetas por álbum
@@ -321,6 +332,8 @@ function initParticles() {
 }
 
 // ---- LOGIN ----
+let visitorName = null;
+
 function initLogin() {
   const loginPage=document.getElementById("login-page"), mainPage=document.getElementById("main-page");
   const step1=document.getElementById("step-1"), step2=document.getElementById("step-2");
@@ -331,6 +344,67 @@ function initLogin() {
   inputNombre.addEventListener("keydown", e => { if(e.key==="Enter") checkStep1(); });
   document.getElementById("btn-step2").addEventListener("click", checkStep2);
   inputApodo.addEventListener("keydown",  e => { if(e.key==="Enter") checkStep2(); });
+
+  // ---- Flujo visitante ----
+  const stepV1 = document.getElementById("step-visitante");
+  const stepV2 = document.getElementById("step-visitante-2");
+  const inputVNombre = document.getElementById("input-visitante-nombre");
+  const inputVFecha  = document.getElementById("input-aniversario");
+  const errV1 = document.getElementById("err-visitante");
+  const errV2 = document.getElementById("err-visitante-2");
+  const linkVisitante = document.getElementById("link-soy-visitante");
+
+  linkVisitante.addEventListener("click", e => {
+    e.preventDefault();
+    step1.style.cssText="opacity:0;transform:translateX(-20px)";
+    setTimeout(()=>{
+      step1.classList.add("hidden");
+      stepV1.classList.remove("hidden");
+      stepV1.style.cssText="opacity:0;transform:translateX(20px)";
+      requestAnimationFrame(()=>{
+        stepV1.style.transition="opacity .4s,transform .4s";
+        stepV1.style.cssText="opacity:1;transform:translateX(0)";
+        inputVNombre.focus();
+      });
+    }, 350);
+  });
+
+  document.getElementById("btn-step-visitante").addEventListener("click", checkVisitanteStep1);
+  inputVNombre.addEventListener("keydown", e => { if(e.key==="Enter") checkVisitanteStep1(); });
+  document.getElementById("btn-step-visitante-2").addEventListener("click", checkVisitanteStep2);
+  inputVFecha.addEventListener("keydown", e => { if(e.key==="Enter") checkVisitanteStep2(); });
+
+  function checkVisitanteStep1() {
+    const val = inputVNombre.value.trim();
+    if (!val) { errV1.textContent="Escribe tu nombre"; errV1.classList.add("show"); return; }
+    visitorName = val;
+    errV1.classList.remove("show");
+    stepV1.style.cssText="opacity:0;transform:translateX(-20px)";
+    setTimeout(()=>{
+      stepV1.classList.add("hidden"); stepV2.classList.remove("hidden");
+      stepV2.style.cssText="opacity:0;transform:translateX(20px)";
+      requestAnimationFrame(()=>{
+        stepV2.style.transition="opacity .4s,transform .4s";
+        stepV2.style.cssText="opacity:1;transform:translateX(0)"; inputVFecha.focus();
+      });
+    }, 350);
+  }
+
+  function checkVisitanteStep2() {
+    const val = inputVFecha.value.trim();
+    const m = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (!m) { errV2.textContent="Usa el formato dd/mm/aaaa"; errV2.classList.add("show"); return; }
+    const dia = parseInt(m[1],10), mes = parseInt(m[2],10), anio = parseInt(m[3],10);
+    if (dia === CONFIG.ANIVERSARIO_DIA && mes === CONFIG.ANIVERSARIO_MES && anio === CONFIG.ANIVERSARIO_ANIO) {
+      errV2.classList.remove("show");
+      isAdmin = false;
+      try { localStorage.setItem("aurora_visitor_name", visitorName); } catch(e){}
+      doEnterMain();
+    } else {
+      errV2.textContent="Esa fecha no es correcta... ¿en verdad nos conoces? 💭";
+      errV2.classList.add("show");
+    }
+  }
 
   function checkStep1() {
     const val = inputNombre.value.trim().toLowerCase();
@@ -356,6 +430,9 @@ function initLogin() {
   }
 
   function doEnterMain() {
+    if (!visitorName) {
+      try { visitorName = localStorage.getItem("aurora_visitor_name"); } catch(e){}
+    }
     loginPage.style.cssText="transition:opacity .6s;opacity:0";
     setTimeout(()=>{
       loginPage.style.display="none";
@@ -378,6 +455,9 @@ function initLogin() {
           renderAlbums("juegos");
         })();
         showMusicPrompt(); autoplayWhenReady();
+        initMapaLugares();
+        initMapaLugares();
+        cargarReaccionesGlobal();
         if (isAdmin) {
           document.getElementById("admin-badge").style.display="inline-flex";
           document.getElementById("albums-add-btn-wrap").style.display="block";
@@ -540,6 +620,24 @@ function refreshPhotoModal() {
   document.getElementById("photo-modal-date").textContent  = d.fecha  || "";
   document.getElementById("photo-modal-desc").textContent  = d.descripcion || "Sin descripción aún.";
   document.getElementById("photo-edit-btn").style.display  = isAdmin ? "flex" : "none";
+
+  const fechaRealEl = document.getElementById("photo-modal-fecha-real");
+  if (d.fecha_real) {
+    fechaRealEl.textContent = "📅 Tomada el " + formatFechaReal(d.fecha_real);
+    fechaRealEl.style.display = "block";
+  } else {
+    fechaRealEl.style.display = "none";
+  }
+
+  loadReacciones(currentAlbumId, currentPhoto);
+}
+
+function formatFechaReal(fechaISO) {
+  // fechaISO formato YYYY-MM-DD
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const [y, m, d] = fechaISO.split("-").map(Number);
+  if (!y || !m || !d) return fechaISO;
+  return `${d} de ${meses[m-1]} de ${y}`;
 }
 
 function closePhoto() {
@@ -886,4 +984,224 @@ function toggleMusic() {
     if (btn) btn.textContent = "⏸";
     isPlaying = true;
   }
+}
+
+// ============================================================
+// MAPA DE LUGARES VISITADOS
+// ============================================================
+const LUGARES = [
+  { nombre: "Castillo de Chapultepec", lat: 19.4205, lng: -99.1819, emoji: "🏰", desc: "Una tarde explorando el castillo y el bosque" },
+  { nombre: "Acuario Michin",          lat: 19.4060, lng: -99.1411, emoji: "🐠", desc: "Día rodeados de peces y criaturas marinas" },
+];
+
+function initMapaLugares() {
+  const el = document.getElementById("mapa-lugares");
+  if (!el || typeof L === "undefined") return;
+  if (el._mapaInit) return;
+  el._mapaInit = true;
+
+  const map = L.map(el, { scrollWheelZoom: false }).setView([19.413, -99.161], 12);
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19
+  }).addTo(map);
+
+  const icon = L.divIcon({
+    className: "mapa-pin",
+    html: '<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))">📍</div>',
+    iconSize: [30, 30],
+    iconAnchor: [15, 28]
+  });
+
+  const bounds = [];
+  LUGARES.forEach(lugar => {
+    const marker = L.marker([lugar.lat, lugar.lng], { icon }).addTo(map);
+    marker.bindPopup(
+      `<div style="font-family:inherit;min-width:160px">
+        <strong>${lugar.emoji} ${lugar.nombre}</strong>
+        <p style="margin:4px 0 0;font-size:13px;opacity:.85">${lugar.desc}</p>
+      </div>`
+    );
+    bounds.push([lugar.lat, lugar.lng]);
+  });
+
+  if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
+}
+
+// ============================================================
+// CORAZONES Y COMENTARIOS — guardados como GitHub Issues
+// (así se ven en todos los dispositivos, sin servidor propio)
+// ============================================================
+const GH_CONFIG = {
+  owner: "MikeQueso",
+  repo:  "Aury_Mike",
+  token: "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",
+};
+
+const reaccionesCache = {};
+
+function getFotoKey(albumId, fi) {
+  const d = getPhotoData(albumId, fi);
+  // clave estable basada en la ruta del archivo, no en el índice (por si cambia el orden)
+  return (d.src || `${albumId}-${fi}`).replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+function getCurrentVisitorName() {
+  if (isAdmin) return CONFIG.ADMIN_DISPLAY || "Miguel";
+  try {
+    const saved = localStorage.getItem("aurora_visitor_name");
+    if (saved) return saved;
+  } catch(e) {}
+  return visitorName || (CONFIG.APODO || "Aury");
+}
+
+async function ghFetchIssueForFoto(fotoKey) {
+  const label = "foto:" + fotoKey;
+  const url = `https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues?labels=${encodeURIComponent(label)}&state=all&per_page=1`;
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${GH_CONFIG.token}`, "Accept": "application/vnd.github+json" }
+  });
+  if (!res.ok) return null;
+  const arr = await res.json();
+  return arr && arr.length ? arr[0] : null;
+}
+
+async function ghCreateIssueForFoto(fotoKey) {
+  const label = "foto:" + fotoKey;
+  // Asegurar que la etiqueta exista (GitHub la crea sola al usarla en el issue si no existe)
+  const res = await fetch(`https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${GH_CONFIG.token}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      title: "💬 Reacciones — " + fotoKey,
+      body: JSON.stringify({ corazones: [], comentarios: [] }),
+      labels: [label, "reacciones-foto"]
+    })
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+function parseIssueBody(issue) {
+  try {
+    const data = JSON.parse(issue.body);
+    return {
+      corazones:   Array.isArray(data.corazones)   ? data.corazones   : [],
+      comentarios: Array.isArray(data.comentarios) ? data.comentarios : []
+    };
+  } catch(e) {
+    return { corazones: [], comentarios: [] };
+  }
+}
+
+async function ghUpdateIssue(issueNumber, data) {
+  const res = await fetch(`https://api.github.com/repos/${GH_CONFIG.owner}/${GH_CONFIG.repo}/issues/${issueNumber}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${GH_CONFIG.token}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ body: JSON.stringify(data) })
+  });
+  return res.ok;
+}
+
+async function loadReacciones(albumId, fi) {
+  const fotoKey = getFotoKey(albumId, fi);
+  const corazonBtn   = document.getElementById("btn-corazon");
+  const corazonCount = document.getElementById("corazon-count");
+  const corazonIcon   = document.getElementById("corazon-icon");
+  const lista         = document.getElementById("comentarios-lista");
+
+  corazonBtn.disabled = true;
+  lista.innerHTML = '<p style="opacity:.5;font-size:13px">Cargando...</p>';
+
+  let issue = reaccionesCache[fotoKey]?.issue;
+  if (!issue) {
+    issue = await ghFetchIssueForFoto(fotoKey);
+    if (!issue) issue = await ghCreateIssueForFoto(fotoKey);
+  }
+
+  if (!issue) {
+    lista.innerHTML = '<p style="opacity:.5;font-size:13px">No se pudieron cargar los comentarios.</p>';
+    corazonBtn.disabled = false;
+    return;
+  }
+
+  const data = parseIssueBody(issue);
+  reaccionesCache[fotoKey] = { issue, data };
+
+  const yo = getCurrentVisitorName();
+  const yaDioCorazon = data.corazones.includes(yo);
+  corazonIcon.textContent = yaDioCorazon ? "❤️" : "🤍";
+  corazonCount.textContent = data.corazones.length;
+  corazonBtn.classList.toggle("activo", yaDioCorazon);
+  corazonBtn.disabled = false;
+
+  renderComentarios(data.comentarios);
+}
+
+function renderComentarios(comentarios) {
+  const lista = document.getElementById("comentarios-lista");
+  if (!comentarios.length) {
+    lista.innerHTML = '<p style="opacity:.5;font-size:13px">Aún no hay comentarios. ¡Sé el primero!</p>';
+    return;
+  }
+  lista.innerHTML = comentarios.map(c => `
+    <div class="comentario-item">
+      <span class="comentario-autor">${escapeHtml(c.autor)}</span>
+      <span class="comentario-texto">${escapeHtml(c.texto)}</span>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function toggleCorazon() {
+  const fotoKey = getFotoKey(currentAlbumId, currentPhoto);
+  const cache = reaccionesCache[fotoKey];
+  if (!cache) return;
+
+  const yo = getCurrentVisitorName();
+  const idx = cache.data.corazones.indexOf(yo);
+  if (idx === -1) cache.data.corazones.push(yo);
+  else cache.data.corazones.splice(idx, 1);
+
+  // Actualizar UI de inmediato (optimista)
+  document.getElementById("corazon-count").textContent = cache.data.corazones.length;
+  document.getElementById("corazon-icon").textContent = idx === -1 ? "❤️" : "🤍";
+  document.getElementById("btn-corazon").classList.toggle("activo", idx === -1);
+
+  await ghUpdateIssue(cache.issue.number, cache.data);
+}
+
+async function enviarComentario() {
+  const input = document.getElementById("comentario-input");
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  const fotoKey = getFotoKey(currentAlbumId, currentPhoto);
+  const cache = reaccionesCache[fotoKey];
+  if (!cache) return;
+
+  const btn = document.getElementById("btn-enviar-comentario");
+  btn.disabled = true;
+
+  const comentario = { autor: getCurrentVisitorName(), texto, fecha: new Date().toISOString() };
+  cache.data.comentarios.push(comentario);
+  renderComentarios(cache.data.comentarios);
+  input.value = "";
+
+  await ghUpdateIssue(cache.issue.number, cache.data);
+  btn.disabled = false;
 }

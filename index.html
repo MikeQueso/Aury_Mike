@@ -6,6 +6,7 @@
   <title>Aury & Mike 🌸 — 2 años</title>
   <!-- Cache controlado por .htaccess -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 </head>
 <body>
 
@@ -30,6 +31,21 @@
         <input type="text" id="input-apodo" class="login-input" placeholder="Tu apodo especial..." autocomplete="off">
         <p class="login-error" id="err2"></p>
         <button class="btn-primary" id="btn-step2">Entrar 💫</button>
+      </div>
+      <div class="login-step hidden" id="step-visitante">
+        <label class="login-label" for="input-visitante-nombre">¿Nos conoces? Registra tu nombre</label>
+        <input type="text" id="input-visitante-nombre" class="login-input" placeholder="Tu nombre..." autocomplete="off">
+        <p class="login-error" id="err-visitante"></p>
+        <button class="btn-primary" id="btn-step-visitante">Continuar</button>
+      </div>
+      <div class="login-step hidden" id="step-visitante-2">
+        <label class="login-label" for="input-aniversario">¿En qué fecha es su aniversario? <span style="opacity:.6;font-size:11px">(dd/mm/aaaa)</span></label>
+        <input type="text" id="input-aniversario" class="login-input" placeholder="10/06/2024" autocomplete="off">
+        <p class="login-error" id="err-visitante-2"></p>
+        <button class="btn-primary" id="btn-step-visitante-2">Entrar 💫</button>
+      </div>
+      <div class="login-footer" style="margin-top:16px;text-align:center">
+        <a href="#" id="link-soy-visitante" style="color:var(--gold);font-size:13px;text-decoration:underline;cursor:pointer">¿Nos conoces? Entra por aquí</a>
       </div>
     </div>
   </section>
@@ -93,6 +109,15 @@
       </div>
     </section>
 
+    <!-- MAPA -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Lugares que hemos visitado</h3>
+        <p>Cada punto en el mapa, un momento juntos</p>
+      </div>
+      <div id="mapa-lugares" style="height:420px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
+    </section>
+
     <footer class="site-footer">
       Hecho con todo mi amor para <strong>Aury</strong> 🌸 — porque cada segundo contigo vale infinito.
     </footer>
@@ -134,6 +159,22 @@
           <button id="photo-edit-btn" class="edit-btn" onclick="startEdit()" style="display:none" title="Editar">✏️</button>
         </div>
         <p class="modal-desc" id="photo-modal-desc"></p>
+        <p class="modal-fecha-real" id="photo-modal-fecha-real" style="display:none;font-size:12px;opacity:.6;margin-top:4px"></p>
+
+        <div class="photo-reacciones">
+          <button class="btn-corazon" id="btn-corazon" onclick="toggleCorazon()">
+            <span id="corazon-icon">🤍</span> <span id="corazon-count">0</span>
+          </button>
+        </div>
+
+        <div class="photo-comentarios">
+          <h5 class="comentarios-title">Comentarios</h5>
+          <div class="comentarios-lista" id="comentarios-lista"></div>
+          <div class="comentario-form">
+            <input type="text" id="comentario-input" class="login-input" placeholder="Escribe un comentario..." autocomplete="off">
+            <button class="btn-primary" id="btn-enviar-comentario" onclick="enviarComentario()">Enviar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -221,6 +262,7 @@
   </div>
 
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

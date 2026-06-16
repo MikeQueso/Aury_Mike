@@ -1099,3 +1099,119 @@ body {
   font-style: italic;
   white-space: nowrap;
 }
+
+/* =========================================
+   MAPA DE LUGARES
+   ========================================= */
+#mapa-lugares {
+  background: var(--bg-card);
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-card);
+}
+
+.leaflet-popup-content { margin: 10px 14px; }
+
+.mapa-pin { background: transparent; border: none; }
+
+/* =========================================
+   FECHA REAL DE LA FOTO
+   ========================================= */
+.modal-fecha-real {
+  font-style: italic;
+  color: var(--gold-light);
+}
+
+/* =========================================
+   CORAZONES Y COMENTARIOS
+   ========================================= */
+.photo-reacciones {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-corazon {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-corazon:hover { border-color: var(--rose); background: var(--rose-glow); }
+.btn-corazon.activo { border-color: var(--rose); background: var(--rose-glow); color: var(--rose-light); }
+.btn-corazon:disabled { opacity: 0.5; cursor: default; }
+
+.photo-comentarios {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.comentarios-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--gold-light);
+  margin-bottom: 10px;
+}
+
+.comentarios-lista {
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.comentario-item {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.comentario-autor {
+  display: block;
+  color: var(--rose-light);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.comentario-texto {
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.comentario-form {
+  display: flex;
+  gap: 8px;
+}
+
+.comentario-form .login-input {
+  flex: 1;
+  margin: 0;
+}
+
+.comentario-form .btn-primary {
+  width: auto;
+  padding: 0 18px;
+  margin: 0;
+  white-space: nowrap;
+}
