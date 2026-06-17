@@ -458,7 +458,12 @@ function initLogin() {
 
   function checkStep2() {
     const val = inputApodo.value.trim().toLowerCase();
-    if (val === CONFIG.APODO.toLowerCase()) { isAdmin=false; err2.classList.remove("show"); doEnterMain(); }
+    if (val === CONFIG.APODO.toLowerCase()) {
+      isAdmin = false;
+      visitorName = "Aury";
+      err2.classList.remove("show");
+      doEnterMain();
+    }
     else { err2.textContent="Hmm... eso no es lo que te dice él 💭"; err2.classList.add("show"); }
   }
 
@@ -1308,4 +1313,26 @@ async function abrirPanelVisitas() {
 
 function cerrarPanelVisitas() {
   document.getElementById("visitas-overlay").classList.remove("open");
+}
+
+async function borrarRegistroVisitas() {
+  if (!confirm("¿Seguro que quieres borrar todo el registro de visitas? Esta acción no se puede deshacer.")) return;
+
+  const lista = document.getElementById("visitas-lista");
+  lista.innerHTML = '<p style="opacity:.5;font-size:13px">Borrando...</p>';
+
+  try {
+    // Supabase requiere un filtro para DELETE masivo; id > 0 cubre todos los registros
+    const res = await fetch(sbUrl("visitas?id=gt.0"), {
+      method: "DELETE",
+      headers: sbHeaders()
+    });
+    if (res.ok) {
+      lista.innerHTML = '<p style="opacity:.6;font-size:13px">Registro borrado. Aún no hay visitas registradas.</p>';
+    } else {
+      lista.innerHTML = '<p style="opacity:.6;font-size:13px">No se pudo borrar el registro. Intenta de nuevo.</p>';
+    }
+  } catch(e) {
+    lista.innerHTML = '<p style="opacity:.6;font-size:13px">No se pudo borrar el registro. Intenta de nuevo.</p>';
+  }
 }
