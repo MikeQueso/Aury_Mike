@@ -1352,7 +1352,13 @@ body {
     min-height: auto;
   }
   .hero-title-img { width: min(340px, 96%); margin-bottom: 18px; }
-  .hero-side-gif { display: none; } /* en móvil estorban más que decoran */
+  .hero-side-gif {
+    width: 56px; height: 56px;
+    border-radius: 10px;
+    opacity: 0.85;
+  }
+  .hero-side-gif--left  { left: 8px; }
+  .hero-side-gif--right { right: 8px; }
   .hero-counter {
     gap: 14px;
     row-gap: 16px;

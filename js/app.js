@@ -1084,6 +1084,12 @@ function initMapaLugares() {
     maxZoom: 19
   }).addTo(map);
 
+  // Leaflet a veces calcula mal el tamaño si el contenedor no tenía
+  // dimensiones definitivas al momento de crearse (ej. durante la
+  // transición de entrada al sitio). Forzamos un recálculo.
+  setTimeout(() => map.invalidateSize(), 600);
+  window.addEventListener("resize", () => map.invalidateSize());
+
   const bounds = [];
   LUGARES.forEach(lugar => {
     const icon = L.divIcon({
@@ -1102,7 +1108,12 @@ function initMapaLugares() {
     bounds.push([lugar.lat, lugar.lng]);
   });
 
-  if (bounds.length > 1) map.fitBounds(bounds, { padding: [50, 50] });
+  if (bounds.length > 1) {
+    setTimeout(() => {
+      map.invalidateSize();
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }, 250);
+  }
 
   renderMapaLeyenda();
 }
