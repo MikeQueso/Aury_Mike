@@ -27,6 +27,13 @@ const GITHUB_CONFIG = {
 const ALBUM_FOLDERS = {
   "album1": { carpeta: "img/chapultepec", json: "img/chapultepec/fotos.json" },
   "album2": { carpeta: "img/acuario",     json: "img/acuario/fotos.json"     },
+  "album6": { carpeta: "img/zoologico_aragon", json: "img/zoologico_aragon/fotos.json" },
+  "album7": { carpeta: "img/epo85",            json: "img/epo85/fotos.json"            },
+  "album8": { carpeta: "img/parque_gasolinera", json: "img/parque_gasolinera/fotos.json" },
+  "album9": { carpeta: "img/aurora_folklor",   json: "img/aurora_folklor/fotos.json"   },
+  "album10":{ carpeta: "img/utn",              json: "img/utn/fotos.json"              },
+  "album11":{ carpeta: "img/gym",              json: "img/gym/fotos.json"              },
+  "album12":{ carpeta: "img/sumo_buffet",      json: "img/sumo_buffet/fotos.json"      },
 };
 
 // Configuración de carpetas por juego
@@ -63,6 +70,37 @@ const BASE_ALBUMS = [
   },
   {
     id:"album5", seccion:"recuerdos", nombre:"Nuestros favoritos", portada:"", fotos:[]
+  },
+  {
+    id:"album6", seccion:"recuerdos", nombre:"Zoológico Aragón",
+    portada:"https://www.eluniversal.com.mx/resizer/v2/OJTMNIIXFZCV5ICVRR5DCZSCGA.jpg?auth=3f94f368343d0855e74b8de197faf07ff288209fee71f63c6031416330cf5c83&smart=true&height=666",
+    fotos:[]
+  },
+  {
+    id:"album7", seccion:"recuerdos", nombre:"Epo 85",
+    portada:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT101fu41e7t1hENvmuemY8ffQuxnfKdyAwdw&s",
+    fotos:[]
+  },
+  {
+    id:"album8", seccion:"recuerdos", nombre:"Parque Gasolinera",
+    portada:"https://lh3.googleusercontent.com/proxy/-ZJhvmw0dXAPayte37yffAvphJY1iYj2ArO3MYj49dgv1zI-0kyelTgz1vDKm4NbSx_V1SW692rBxdf2q8xz",
+    fotos:[]
+  },
+  {
+    id:"album9", seccion:"recuerdos", nombre:"Aurora Folklor",
+    portada:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYwMUGnu0X7BcHPYfEBDZxm6AgHw2qp_ZS9A&s",
+    fotos:[]
+  },
+  {
+    id:"album10", seccion:"recuerdos", nombre:"UTN",
+    portada:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJDKecvHKprHqCWks-BpOp6lQVsctLbix90A&s",
+    fotos:[]
+  },
+  {
+    id:"album11", seccion:"recuerdos", nombre:"Gym", portada:"", fotos:[]
+  },
+  {
+    id:"album12", seccion:"recuerdos", nombre:"Sumo Buffet", portada:"", fotos:[]
   },
 ];
 
