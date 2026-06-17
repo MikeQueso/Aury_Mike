@@ -97,10 +97,10 @@ const BASE_ALBUMS = [
     fotos:[]
   },
   {
-    id:"album11", seccion:"recuerdos", nombre:"Gym", portada:"", fotos:[]
+    id:"album11", seccion:"recuerdos", nombre:"Gym", portada:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxd56Ux1ynSrUptEzkSpZxfhAdRMOpKey-2g&s", fotos:[]
   },
   {
-    id:"album12", seccion:"recuerdos", nombre:"Sumo Buffet", portada:"", fotos:[]
+    id:"album12", seccion:"recuerdos", nombre:"Sumo Buffet", portada:"https://sumo.com.mx/wp-content/uploads/2024/01/sumo-sushi.jpg", fotos:[]
   },
 ];
 
