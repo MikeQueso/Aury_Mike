@@ -1301,3 +1301,147 @@ body {
   color: var(--text-muted);
   font-size: 0.78rem;
 }
+
+/* =========================================
+   RESPONSIVE MÓVIL — pasada completa
+   Punto de quiebre principal: 600px
+   ========================================= */
+@media (max-width: 600px) {
+
+  /* --- HEADER --- */
+  .site-header {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: 6px;
+    row-gap: 6px;
+  }
+  .header-logo {
+    font-size: 1rem;
+    flex: 1 1 auto;
+  }
+  .header-center {
+    position: static;
+    transform: none;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .music-title-header {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .header-right {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .header-date {
+    display: none; /* en pantallas chicas no hay espacio, lo prioriza el counter del hero */
+  }
+  #admin-badge span { display: none; }
+  #admin-badge { padding: 6px 8px; }
+  .music-btn-header, #btn-ver-visitas {
+    width: 30px; height: 30px; font-size: 0.85rem;
+  }
+
+  /* --- HERO --- */
+  .hero {
+    padding: 100px 14px 60px;
+    min-height: auto;
+  }
+  .hero-title-img { width: min(340px, 96%); margin-bottom: 18px; }
+  .hero-side-gif { display: none; } /* en móvil estorban más que decoran */
+  .hero-counter {
+    gap: 14px;
+    row-gap: 16px;
+  }
+  .counter-block .num { font-size: 1.6rem; }
+  .counter-block .lbl { font-size: 0.62rem; }
+
+  /* --- SECCIONES --- */
+  .section { padding: 44px 14px; }
+  .section-header { margin-bottom: 32px; }
+  .section-header h3 { font-size: 1.5rem; }
+
+  /* --- GRIDS DE ÁLBUMES / JUEGOS --- */
+  .albums-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .album-info { padding: 10px 12px 12px; }
+  .album-name { font-size: 0.92rem; }
+  .album-photo-count { font-size: 0.62rem; padding: 3px 8px; top: 8px; right: 8px; }
+
+  /* --- DENTRO DE UN ÁLBUM --- */
+  .album-overlay-inner { padding: 0 10px 50px; }
+  .overlay-header { padding: 14px 0 16px; }
+  .overlay-header h3 { font-size: 1.1rem; }
+  .overlay-back { padding: 6px 12px; font-size: 0.8rem; }
+  .album-photos-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  /* --- MODAL DE FOTO --- */
+  .photo-modal-overlay { padding: 0; align-items: stretch; }
+  .photo-modal-box {
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  .photo-modal-img-wrap img { max-height: 50vh; }
+  .photo-modal-body { padding: 16px 16px 24px; }
+  .photo-modal-header-row { flex-wrap: wrap; }
+  .modal-title { font-size: 1.1rem; }
+  .photo-nav { width: 32px; height: 32px; font-size: 1.1rem; }
+  .photo-nav-left  { left: 6px; }
+  .photo-nav-right { right: 6px; }
+
+  /* Comentarios: el formulario se apila para no apretarse */
+  .comentario-form { flex-direction: column; }
+  .comentario-form .btn-primary { width: 100%; padding: 12px; }
+
+  /* --- MÚSICA FLOTANTE --- */
+  .music-bar {
+    bottom: 12px;
+    padding: 8px 14px;
+    gap: 10px;
+    max-width: calc(100% - 28px);
+  }
+  .music-title { max-width: 120px; font-size: 0.74rem; }
+
+  /* --- MAPA --- */
+  .mapa-wrapper { gap: 10px; }
+  .mapa-leyenda {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .leyenda-item { font-size: 0.78rem; }
+  .mapa-contenedor { height: 280px; }
+
+  /* --- MODALES DE EDICIÓN (admin) --- */
+  .edit-box { padding: 22px 18px; max-width: 100%; }
+  .edit-actions { flex-wrap: wrap; gap: 8px; }
+  .edit-actions > div { width: 100%; justify-content: space-between; }
+
+  /* --- LOGIN --- */
+  .login-card { padding: 36px 22px; }
+  .login-couple-photo { width: 110px; height: 110px; }
+  .login-card h1 { font-size: 1.6rem; }
+
+  /* --- PANEL DE VISITAS --- */
+  .visita-item { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+
+/* Pantallas muy pequeñas (320-380px) */
+@media (max-width: 380px) {
+  .albums-grid { grid-template-columns: 1fr; }
+  .album-photos-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-counter { gap: 10px; }
+  .counter-block .num { font-size: 1.35rem; }
+}
