@@ -34,7 +34,11 @@ const ALBUM_FOLDERS = {
   "album10":{ carpeta: "img/utn",              json: "img/utn/fotos.json"              },
   "album11":{ carpeta: "img/gym",              json: "img/gym/fotos.json"              },
   "album12":{ carpeta: "img/sumo_buffet",      json: "img/sumo_buffet/fotos.json"      },
+  "album13":{ carpeta: "img/lo_que_pudo_ser",  json: "img/lo_que_pudo_ser/fotos.json"  },
 };
+
+// Álbumes privados: solo visibles cuando inicia sesión Aury (nombre+apodo), no admin ni visitantes
+const PRIVATE_ALBUMS_AURY = new Set(["album13"]);
 
 // Configuración de carpetas por juego
 const JUEGO_FOLDERS = {
@@ -101,6 +105,11 @@ const BASE_ALBUMS = [
   },
   {
     id:"album12", seccion:"recuerdos", nombre:"Sumo Buffet", portada:"https://sumo.com.mx/wp-content/uploads/2024/01/sumo-sushi.jpg", fotos:[]
+  },
+  {
+    id:"album13", seccion:"recuerdos", nombre:"Lo que pudo ser",
+    portada:"img/lo_que_pudo_ser/portada.jpeg",
+    fotos:[]
   },
 ];
 
@@ -180,6 +189,7 @@ function isBaseItem(id) {
 // ESTADO
 // ============================================================
 let isAdmin         = false;
+let isAuryUser       = false; // true solo cuando inicia sesion como Aury (nombre+apodo correcto)
 let currentAlbumId  = null;
 let currentPhoto    = null;
 let editingPhotoKey = null;
@@ -193,7 +203,7 @@ let dbData = { fotos:{}, albums:{}, nuevos:[], deletedBase:[] };
 function getAlbums(seccion) {
   const base    = seccion === "juegos" ? BASE_JUEGOS : BASE_ALBUMS;
   const deleted = dbData.deletedBase || [];
-  const visibles = base.filter(a => !deleted.includes(a.id));
+  const visibles = base.filter(a => !deleted.includes(a.id) && (!PRIVATE_ALBUMS_AURY.has(a.id) || isAuryUser));
   const extras   = (dbData.nuevos || []).filter(a => a.seccion === seccion);
   return [...visibles, ...extras];
 }
@@ -469,6 +479,7 @@ function initLogin() {
     if (dia === CONFIG.ANIVERSARIO_DIA && mes === CONFIG.ANIVERSARIO_MES && anio === CONFIG.ANIVERSARIO_ANIO) {
       errV2.classList.remove("show");
       isAdmin = false;
+      isAuryUser = false;
       try { localStorage.setItem("aurora_visitor_name", visitorName); } catch(e){}
       doEnterMain();
     } else {
@@ -479,7 +490,7 @@ function initLogin() {
 
   function checkStep1() {
     const val = inputNombre.value.trim().toLowerCase();
-    if (val === CONFIG.ADMIN.toLowerCase()) { isAdmin=true; err1.classList.remove("show"); doEnterMain(); return; }
+    if (val === CONFIG.ADMIN.toLowerCase()) { isAdmin=true; isAuryUser=false; err1.classList.remove("show"); doEnterMain(); return; }
     if (val === CONFIG.NOMBRE.toLowerCase()) {
       err1.classList.remove("show");
       step1.style.cssText="opacity:0;transform:translateX(-20px)";
@@ -498,6 +509,7 @@ function initLogin() {
     const val = inputApodo.value.trim().toLowerCase();
     if (val === CONFIG.APODO.toLowerCase()) {
       isAdmin = false;
+      isAuryUser = true;
       visitorName = "Aury";
       err2.classList.remove("show");
       doEnterMain();
@@ -638,6 +650,7 @@ function renderAlbumGrid(id) {
 // ÁLBUM OVERLAY
 // ============================================================
 async function openAlbum(id) {
+  if (PRIVATE_ALBUMS_AURY.has(id) && !isAuryUser) return;
   currentAlbumId = id;
   document.getElementById("album-overlay-title").textContent = getAlbumNombre(id);
   document.getElementById("album-edit-name-btn").style.display = isAdmin ? "flex" : "none";
