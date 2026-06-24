@@ -111,6 +111,17 @@
       </div>
     </section>
 
+    <!-- CARTAS (solo admin/Aury) -->
+    <section class="section" id="cartas-section-wrap" style="display:none">
+      <div class="section-header">
+        <h3>💌 Cartas</h3>
+        <p>Palabras que quería dejarte por aquí</p>
+      </div>
+      <div style="text-align:center">
+        <button class="btn-add-album" onclick="abrirCartas()">💌 Ver cartas</button>
+      </div>
+    </section>
+
     <!-- MAPA -->
     <section class="section">
       <div class="section-header">
@@ -278,7 +289,38 @@
     </div>
   </div>
 
+  <!-- PANEL DE CARTAS (lista) -->
+  <div class="edit-overlay" id="cartas-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title">💌 Cartas</h4>
+      <div id="cartas-lista" class="visitas-lista"></div>
+      <div id="cartas-add-btn-wrap" style="display:none;text-align:center;margin-top:10px">
+        <button class="btn-add-album" onclick="openNuevaCartaModal()">＋ Nueva carta</button>
+      </div>
+      <div class="edit-actions">
+        <button class="btn-cancel" onclick="cerrarCartas()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CARTA (crear/editar/leer) -->
+  <div class="edit-overlay" id="carta-modal-overlay">
+    <div class="edit-box">
+      <h4 class="edit-box-title" id="carta-modal-titulo-h4">💌 Carta</h4>
+      <label class="edit-label">Título</label>
+      <input type="text" id="carta-modal-titulo" class="edit-input" placeholder="Título de la carta">
+      <label class="edit-label" style="margin-top:14px">Texto</label>
+      <textarea id="carta-modal-texto" class="edit-textarea" style="min-height:220px" placeholder="Escribe lo que quieras decirle..."></textarea>
+      <input type="hidden" id="carta-modal-id" value="">
+      <div class="edit-actions">
+        <button class="btn-delete" id="carta-modal-delete-btn" style="display:none" onclick="deleteCarta()">🗑️ Eliminar</button>
+        <button class="btn-cancel" onclick="closeCartaModal()">Cerrar</button>
+        <button class="btn-save" id="carta-modal-save-btn" style="display:none" onclick="saveCarta()">Guardar ✓</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <script src="js/app.js?v=20260623b"></script>
+  <script src="js/app.js?v=20260623c"></script>
 </body>
 </html>

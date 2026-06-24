@@ -195,7 +195,8 @@ let currentPhoto    = null;
 let editingPhotoKey = null;
 let isSaving        = false;
 
-let dbData = { fotos:{}, albums:{}, nuevos:[], deletedBase:[] };
+let dbData = { fotos:{}, albums:{}, nuevos:[], deletedBase:[], cartas:[] };
+let editingCartaId = null;
 
 // ============================================================
 // HELPERS
@@ -265,6 +266,7 @@ function loadLocal() {
       dbData.albums      = dbData.albums      || {};
       dbData.nuevos      = dbData.nuevos      || [];
       dbData.deletedBase = dbData.deletedBase || [];
+      dbData.cartas      = dbData.cartas      || [];
       return true;
     }
   } catch(e) {}
@@ -322,6 +324,7 @@ function importarDatos() {
         dbData.albums      = dbData.albums      || {};
         dbData.nuevos      = dbData.nuevos      || [];
         dbData.deletedBase = dbData.deletedBase || [];
+        dbData.cartas      = dbData.cartas      || [];
         saveLocal();
         renderAlbums("juegos");
         renderAlbums("recuerdos");
@@ -554,6 +557,7 @@ function initLogin() {
           document.getElementById("admin-badge").style.display="none";
           document.getElementById("btn-ver-visitas").style.display="none";
         }
+        document.getElementById("cartas-section-wrap").style.display = (isAdmin || isAuryUser) ? "block" : "none";
       });
     }, 600);
   }
@@ -1019,10 +1023,98 @@ function closeFotoModal() {
   document.getElementById("foto-modal-overlay").classList.remove("open");
 }
 
+// ============================================================
+// CARTAS — solo admin crea/edita, solo Aury y admin pueden ver
+// ============================================================
+function abrirCartas() {
+  if (!isAdmin && !isAuryUser) return;
+  document.getElementById("cartas-add-btn-wrap").style.display = isAdmin ? "block" : "none";
+  renderCartasLista();
+  document.getElementById("cartas-overlay").classList.add("open");
+}
+
+function cerrarCartas() {
+  document.getElementById("cartas-overlay").classList.remove("open");
+}
+
+function renderCartasLista() {
+  const lista = document.getElementById("cartas-lista");
+  const cartas = dbData.cartas || [];
+  if (!cartas.length) {
+    lista.innerHTML = '<p style="opacity:.6;font-size:13px">Aún no hay cartas aquí.</p>';
+    return;
+  }
+  lista.innerHTML = cartas.map(c => `
+    <div class="visita-item" style="cursor:pointer" onclick="openCartaModal('${c.id}')">
+      <span class="visita-nombre">💌 ${escapeHtml(c.titulo || "Sin título")}</span>
+      ${isAdmin ? `<span class="edit-btn" style="display:inline-flex" title="Editar">✏️</span>` : `<span class="visita-fecha">Ver →</span>`}
+    </div>
+  `).join("");
+}
+
+function openNuevaCartaModal() {
+  if (!isAdmin) return;
+  editingCartaId = null;
+  document.getElementById("carta-modal-titulo-h4").textContent = "💌 Nueva carta";
+  document.getElementById("carta-modal-titulo").value = "";
+  document.getElementById("carta-modal-texto").value  = "";
+  document.getElementById("carta-modal-titulo").readOnly = false;
+  document.getElementById("carta-modal-texto").readOnly  = false;
+  document.getElementById("carta-modal-save-btn").style.display   = "inline-flex";
+  document.getElementById("carta-modal-delete-btn").style.display = "none";
+  document.getElementById("carta-modal-overlay").classList.add("open");
+}
+
+function openCartaModal(id) {
+  const carta = (dbData.cartas || []).find(c => c.id === id);
+  if (!carta) return;
+  editingCartaId = id;
+  document.getElementById("carta-modal-titulo-h4").textContent = isAdmin ? "✏️ Editar carta" : "💌 " + (carta.titulo || "");
+  document.getElementById("carta-modal-titulo").value = carta.titulo || "";
+  document.getElementById("carta-modal-texto").value  = carta.texto  || "";
+  document.getElementById("carta-modal-titulo").readOnly = !isAdmin;
+  document.getElementById("carta-modal-texto").readOnly  = !isAdmin;
+  document.getElementById("carta-modal-save-btn").style.display   = isAdmin ? "inline-flex" : "none";
+  document.getElementById("carta-modal-delete-btn").style.display = isAdmin ? "inline-flex" : "none";
+  document.getElementById("carta-modal-overlay").classList.add("open");
+}
+
+function closeCartaModal() {
+  document.getElementById("carta-modal-overlay").classList.remove("open");
+  editingCartaId = null;
+}
+
+async function saveCarta() {
+  if (!isAdmin) return;
+  const titulo = document.getElementById("carta-modal-titulo").value.trim();
+  const texto  = document.getElementById("carta-modal-texto").value.trim();
+  if (!titulo) { alert("Escribe un título"); return; }
+
+  if (!dbData.cartas) dbData.cartas = [];
+  if (editingCartaId) {
+    const carta = dbData.cartas.find(c => c.id === editingCartaId);
+    if (carta) { carta.titulo = titulo; carta.texto = texto; }
+  } else {
+    dbData.cartas.push({ id: "carta_" + Date.now(), titulo, texto });
+  }
+  closeCartaModal();
+  renderCartasLista();
+  await saveData();
+}
+
+async function deleteCarta() {
+  if (!isAdmin || !editingCartaId) return;
+  if (!confirm("¿Eliminar esta carta? Esta acción no se puede deshacer.")) return;
+  dbData.cartas = (dbData.cartas || []).filter(c => c.id !== editingCartaId);
+  closeCartaModal();
+  renderCartasLista();
+  await saveData();
+}
+
 // ---- ESC ----
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  for (const id of ["edit-overlay","foto-modal-overlay","album-modal-overlay","photo-overlay","album-overlay"]) {
+  for (const id of ["edit-overlay","foto-modal-overlay","album-modal-overlay","photo-overlay","album-overlay","cartas-overlay","carta-modal-overlay"]) {
     const el = document.getElementById(id);
     if (el?.classList.contains("open")) {
       el.classList.remove("open");
