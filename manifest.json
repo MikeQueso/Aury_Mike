@@ -1,0 +1,15 @@
+{
+  "name": "Aury & Mike 🌸 — 2 años",
+  "short_name": "Aury & Mike",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a0a12",
+  "theme_color": "#c97b9a",
+  "icons": [
+    {
+      "src": "img/favicon.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
