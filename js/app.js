@@ -1230,9 +1230,17 @@ function fechaCDMX() {
 
 /** true durante todo el 25 de agosto (de cualquier año, para que se repita cada cumpleaños). */
 function esCumpleanosAury() {
-  // ⚠️ TEMPORAL — modo prueba: agregar ?cumple a la URL fuerza la sorpresa.
-  // Borrar estas 3 líneas cuando terminen las pruebas.
-  try { if (new URLSearchParams(location.search).has("cumple")) return true; } catch(e) {}
+  // ⚠️ TEMPORAL — modo prueba. Borrar este bloque cuando terminen las pruebas.
+  //   ?cumple      → activa la sorpresa y la deja activa (también en el acceso directo)
+  //   ?cumple=off  → la desactiva
+  try {
+    const p = new URLSearchParams(location.search);
+    if (p.has("cumple")) {
+      if (p.get("cumple") === "off") localStorage.removeItem("aurora_prueba_cumple");
+      else { localStorage.setItem("aurora_prueba_cumple", "1"); return true; }
+    }
+    if (localStorage.getItem("aurora_prueba_cumple") === "1") return true;
+  } catch(e) {}
 
   const f = fechaCDMX();
   return f.dia === CUMPLE.DIA && f.mes === CUMPLE.MES;
