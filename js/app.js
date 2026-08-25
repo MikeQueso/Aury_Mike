@@ -1230,6 +1230,10 @@ function fechaCDMX() {
 
 /** true durante todo el 25 de agosto (de cualquier año, para que se repita cada cumpleaños). */
 function esCumpleanosAury() {
+  // ⚠️ TEMPORAL — modo prueba: agregar ?cumple a la URL fuerza la sorpresa.
+  // Borrar estas 3 líneas cuando terminen las pruebas.
+  try { if (new URLSearchParams(location.search).has("cumple")) return true; } catch(e) {}
+
   const f = fechaCDMX();
   return f.dia === CUMPLE.DIA && f.mes === CUMPLE.MES;
 }
