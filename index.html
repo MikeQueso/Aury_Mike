@@ -9,7 +9,7 @@
   <link rel="shortcut icon" type="image/png" href="img/favicon.png?v=2">
   <link rel="apple-touch-icon" href="img/favicon.png?v=2">
   <!-- Cache controlado por .htaccess -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260824-cumple">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 </head>
 <body>
@@ -293,6 +293,27 @@
     </div>
   </div>
 
+  <!-- SORPRESA DE CUMPLEAÑOS (solo Aury, solo el 25 de agosto) -->
+  <div id="cumple-overlay">
+    <div class="cumple-fotos" id="cumple-fotos"></div>
+    <div class="cumple-mensajes" id="cumple-mensajes"></div>
+    <div class="cumple-confeti" id="cumple-confeti"></div>
+
+    <div class="cumple-centro">
+      <div class="cumple-velitas">✨ 🎂 ✨</div>
+      <div class="cumple-titulo-fila">
+        <img src="img/pibble.gif" alt="" class="cumple-gif cumple-gif--left">
+        <div class="cumple-textos">
+          <p class="cumple-pre">Hoy es tu día</p>
+          <h1 class="cumple-titulo">Feliz cumpleaños<br><span>mi amor</span></h1>
+          <p class="cumple-sub">Que todo lo bonito de este mundo te encuentre hoy 🌸</p>
+        </div>
+        <img src="img/chile.gif" alt="" class="cumple-gif cumple-gif--right">
+      </div>
+      <button class="cumple-btn" onclick="cerrarCumple()">Entrar a nuestros recuerdos 💗</button>
+    </div>
+  </div>
+
   <!-- PANEL DE CARTAS (lista) -->
   <div class="edit-overlay" id="cartas-overlay">
     <div class="edit-box">
@@ -325,6 +346,6 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <script src="js/app.js?v=20260623c"></script>
+  <script src="js/app.js?v=20260824-cumple"></script>
 </body>
 </html>

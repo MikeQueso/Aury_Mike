@@ -546,7 +546,13 @@ function initLogin() {
           renderAlbums("recuerdos");
           renderAlbums("juegos");
         })();
-        showMusicPrompt(); autoplayWhenReady();
+        // El 25 de agosto Aury entra directo a su sorpresa, con Las Mañanitas
+        // en lugar de la canción de siempre (nunca suenan las dos a la vez)
+        if (isAuryUser && esCumpleanosAury()) {
+          iniciarCumple();
+        } else {
+          showMusicPrompt(); autoplayWhenReady();
+        }
         initMapaLugares();
         if (isAdmin) {
           document.getElementById("admin-badge").style.display="inline-flex";
@@ -1156,6 +1162,8 @@ function showMusicPrompt() {
 
 function toggleMusic() {
   const btn = document.getElementById("music-play-btn");
+  // Durante la sorpresa de cumpleaños el botón controla Las Mañanitas
+  if (cumpleAudio) return toggleMusicCumple();
   if (!audioPlayer) return;
   if (isPlaying) {
     audioPlayer.pause();
@@ -1165,6 +1173,202 @@ function toggleMusic() {
     audioPlayer.play();
     if (btn) btn.textContent = "⏸";
     isPlaying = true;
+  }
+}
+
+// ============================================================
+// SORPRESA DE CUMPLEAÑOS — 25 de agosto, solo para Aury
+// ============================================================
+const CUMPLE = {
+  DIA: 25,
+  MES: 8,                          // agosto
+  AUDIO: "audio/mananitas.mp3",
+  TITULO: "Las Mañanitas 🎂 — Feliz cumpleaños Aury",
+};
+
+const CUMPLE_MENSAJES = [
+  "Feliz cumpleaños mi amor 💗",
+  "Gracias por existir 🌸",
+  "Eres lo más bonito que me ha pasado",
+  "Hoy el mundo celebra que naciste ✨",
+  "Te amo más que ayer 💕",
+  "Contigo todo es más bonito",
+  "Mi persona favorita 🥰",
+  "Que se te cumpla todo lo que sueñas 🌟",
+  "Eres mi lugar seguro 🏡",
+  "Cada día contigo es un regalo 🎁",
+  "Mi Aury hermosa 💖",
+  "Feliz vuelta al sol 🎂",
+  "Te amo infinito ♾️",
+  "Naciste para iluminarlo todo ☀️",
+  "Eres mi canción favorita 🎵",
+  "Que nunca se te apague esa sonrisa 😊",
+];
+
+const CUMPLE_FOTO_FUENTES = [
+  "img/chapultepec/fotos.json",
+  "img/acuario/fotos.json",
+  "img/aurora_folklor/fotos.json",
+  "img/sumo_buffet/fotos.json",
+  "img/parque_gasolinera/fotos.json",
+  "img/zoologico_aragon/fotos.json",
+];
+
+let cumpleAudio     = null;
+let cumpleTimers    = [];
+let cumpleFotoPool  = [];
+
+/** Fecha actual en horario de Ciudad de México (evita que el día cambie por la zona del dispositivo). */
+function fechaCDMX() {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Mexico_City",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  });
+  const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x => [x.type, x.value]));
+  return { anio: +p.year, mes: +p.month, dia: +p.day };
+}
+
+/** true durante todo el 25 de agosto (de cualquier año, para que se repita cada cumpleaños). */
+function esCumpleanosAury() {
+  const f = fechaCDMX();
+  return f.dia === CUMPLE.DIA && f.mes === CUMPLE.MES;
+}
+
+async function cargarFotosCumple() {
+  const pool = [];
+  await Promise.all(CUMPLE_FOTO_FUENTES.map(async url => {
+    try {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) return;
+      const arr = await r.json();
+      // Los álbumes también guardan videos; aquí solo sirven imágenes
+      if (Array.isArray(arr)) arr.forEach(f => {
+        if (f && f.src && /\.(jpe?g|png|webp|gif)$/i.test(f.src)) pool.push(f.src);
+      });
+    } catch(e) {}
+  }));
+  // Mezclar para que cada visita se sienta distinta
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  cumpleFotoPool = pool;
+}
+
+/** Coloca el elemento en una x al azar pero siempre completo dentro de la pantalla. */
+function colocarHorizontal(el) {
+  const libre = Math.max(0, window.innerWidth - el.offsetWidth - 8);
+  el.style.left = Math.round(Math.random() * libre) + "px";
+}
+
+function spawnFotoCumple() {
+  const cont = document.getElementById("cumple-fotos");
+  if (!cont || !cumpleFotoPool.length) return;
+  const img = document.createElement("img");
+  img.className = "cumple-foto";
+  img.src = cumpleFotoPool[Math.floor(Math.random() * cumpleFotoPool.length)];
+  img.alt = "";
+  img.loading = "lazy";
+  const dur = 15 + Math.random() * 12;
+  img.style.animationDuration = dur + "s";
+  img.style.setProperty("--rot", (Math.random() * 14 - 7).toFixed(1) + "deg");
+  img.style.setProperty("--op",  (0.32 + Math.random() * 0.28).toFixed(2));
+  img.onerror = () => img.remove();
+  cont.appendChild(img);
+  colocarHorizontal(img);
+  setTimeout(() => img.remove(), dur * 1000 + 500);
+}
+
+function spawnMensajeCumple() {
+  const cont = document.getElementById("cumple-mensajes");
+  if (!cont) return;
+  const el = document.createElement("span");
+  el.className = "cumple-msg";
+  el.textContent = CUMPLE_MENSAJES[Math.floor(Math.random() * CUMPLE_MENSAJES.length)];
+  const dur = 13 + Math.random() * 9;
+  el.style.animationDuration = dur + "s";
+  cont.appendChild(el);
+  colocarHorizontal(el);
+  setTimeout(() => el.remove(), dur * 1000 + 500);
+}
+
+function initConfetiCumple() {
+  const cont = document.getElementById("cumple-confeti");
+  if (!cont || cont.childElementCount) return;
+  const simbolos = ["💗","✨","🌸","💖","🎉","⭐","🎂","💕"];
+  for (let i = 0; i < 34; i++) {
+    const s = document.createElement("span");
+    s.className   = "cumple-particula";
+    s.textContent = simbolos[Math.floor(Math.random() * simbolos.length)];
+    s.style.left              = (Math.random() * 100) + "vw";
+    s.style.animationDuration = (7 + Math.random() * 8) + "s";
+    s.style.animationDelay    = (Math.random() * 9) + "s";
+    cont.appendChild(s);
+  }
+}
+
+async function iniciarCumple() {
+  const ov = document.getElementById("cumple-overlay");
+  if (!ov) return;
+
+  // Las Mañanitas reemplaza la canción normal ese día — nunca suenan juntas
+  if (audioPlayer) { try { audioPlayer.pause(); } catch(e){} isPlaying = false; }
+
+  cumpleAudio = new Audio(CUMPLE.AUDIO);
+  cumpleAudio.loop   = true;
+  cumpleAudio.volume = 0.85;
+  cumpleAudio.play().catch(() => {
+    // Si el navegador bloquea el autoplay, arranca al primer toque de ella
+    const arrancar = () => {
+      cumpleAudio.play().catch(()=>{});
+      document.removeEventListener("click", arrancar);
+      document.removeEventListener("touchstart", arrancar);
+    };
+    document.addEventListener("click", arrancar,      { once: true });
+    document.addEventListener("touchstart", arrancar, { once: true });
+  });
+
+  const titulo = document.getElementById("music-song-title");
+  if (titulo) titulo.textContent = CUMPLE.TITULO;
+  const btn = document.getElementById("music-play-btn");
+  if (btn) btn.textContent = "⏸";
+
+  ov.classList.add("open");
+  requestAnimationFrame(() => ov.classList.add("visible"));
+  initConfetiCumple();
+  cumpleTimers.push(setInterval(spawnMensajeCumple, 2300));
+  spawnMensajeCumple();
+
+  await cargarFotosCumple();
+  for (let i = 0; i < 5; i++) setTimeout(spawnFotoCumple, i * 900);
+  cumpleTimers.push(setInterval(spawnFotoCumple, 1700));
+}
+
+function cerrarCumple() {
+  const ov = document.getElementById("cumple-overlay");
+  if (!ov) return;
+  cumpleTimers.forEach(clearInterval);
+  cumpleTimers = [];
+  ov.classList.remove("visible");
+  setTimeout(() => {
+    ov.classList.remove("open");
+    ["cumple-fotos","cumple-mensajes","cumple-confeti"].forEach(id => {
+      const c = document.getElementById(id);
+      if (c) c.innerHTML = "";
+    });
+  }, 1000);
+  // Las Mañanitas sigue sonando de fondo durante su día
+}
+
+/** El botón del header controla Las Mañanitas cuando la sorpresa está activa. */
+function toggleMusicCumple() {
+  const btn = document.getElementById("music-play-btn");
+  if (cumpleAudio.paused) {
+    cumpleAudio.play().catch(()=>{});
+    if (btn) btn.textContent = "⏸";
+  } else {
+    cumpleAudio.pause();
+    if (btn) btn.textContent = "▶";
   }
 }
 
