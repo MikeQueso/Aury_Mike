@@ -529,6 +529,13 @@ function initLogin() {
     setTimeout(()=>{
       loginPage.style.display="none";
       mainPage.style.cssText="display:block;opacity:0;transition:opacity .8s";
+      // La sorpresa se lanza fuera del requestAnimationFrame: si la pestaña está
+      // en segundo plano el navegador no dispara rAF y se perdería la sorpresa.
+      if (isAuryUser && esCumpleanosAury()) {
+        iniciarCumple();
+      } else {
+        showMusicPrompt(); autoplayWhenReady();
+      }
       requestAnimationFrame(()=>{
         mainPage.style.opacity="1";
         // Renderizar álbumes — las fotos se cargan solo cuando se abre el álbum
@@ -546,13 +553,6 @@ function initLogin() {
           renderAlbums("recuerdos");
           renderAlbums("juegos");
         })();
-        // El 25 de agosto Aury entra directo a su sorpresa, con Las Mañanitas
-        // en lugar de la canción de siempre (nunca suenan las dos a la vez)
-        if (isAuryUser && esCumpleanosAury()) {
-          iniciarCumple();
-        } else {
-          showMusicPrompt(); autoplayWhenReady();
-        }
         initMapaLugares();
         if (isAdmin) {
           document.getElementById("admin-badge").style.display="inline-flex";
@@ -1180,8 +1180,12 @@ function toggleMusic() {
 // SORPRESA DE CUMPLEAÑOS — 25 de agosto, solo para Aury
 // ============================================================
 const CUMPLE = {
-  DIA: 25,
-  MES: 8,                          // agosto
+  DIA:  25,
+  MES:  8,                         // agosto
+  ANIO: 2026,
+  // true  → la sorpresa sale siempre que entre Aury (activa desde ya)
+  // false → solo sale el 25 de agosto de 2026, desde las 12:00 am hora CDMX
+  SIEMPRE_ACTIVA: true,
   AUDIO: "audio/mananitas.mp3",
   TITULO: "Las Mañanitas 🎂 — Feliz cumpleaños Aury",
 };
@@ -1228,22 +1232,11 @@ function fechaCDMX() {
   return { anio: +p.year, mes: +p.month, dia: +p.day };
 }
 
-/** true durante todo el 25 de agosto (de cualquier año, para que se repita cada cumpleaños). */
+/** Si SIEMPRE_ACTIVA está apagado, solo es true el 25 de agosto de 2026 (hora CDMX). */
 function esCumpleanosAury() {
-  // ⚠️ TEMPORAL — modo prueba. Borrar este bloque cuando terminen las pruebas.
-  //   ?cumple      → activa la sorpresa y la deja activa (también en el acceso directo)
-  //   ?cumple=off  → la desactiva
-  try {
-    const p = new URLSearchParams(location.search);
-    if (p.has("cumple")) {
-      if (p.get("cumple") === "off") localStorage.removeItem("aurora_prueba_cumple");
-      else { localStorage.setItem("aurora_prueba_cumple", "1"); return true; }
-    }
-    if (localStorage.getItem("aurora_prueba_cumple") === "1") return true;
-  } catch(e) {}
-
+  if (CUMPLE.SIEMPRE_ACTIVA) return true;
   const f = fechaCDMX();
-  return f.dia === CUMPLE.DIA && f.mes === CUMPLE.MES;
+  return f.dia === CUMPLE.DIA && f.mes === CUMPLE.MES && f.anio === CUMPLE.ANIO;
 }
 
 async function cargarFotosCumple() {
